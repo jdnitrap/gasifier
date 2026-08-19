@@ -1,6 +1,6 @@
 # Wood Gasifier Design Tools
 
-Home-scale **Imbert / downdraft** wood gasifier design calculator and starter kinetic model.
+Home-scale **Imbert / downdraft** wood gasifier design calculator, kinetic model, and full design skill.
 
 All calculations use **English (US customary) units**.
 
@@ -24,6 +24,14 @@ python gasifier_design_model.py
 ```
 
 Edit the inputs at the top of the file (wood feed rate, hearth load, etc.).
+
+## Design Skill
+
+The full practical design knowledge base lives in the `skill/` folder:
+
+- `skill/SKILL.md` — Main design, sizing, materials, tar control, safety, troubleshooting, and integration guidance
+- `skill/references/fao-design-guidelines.md` — Classic FAO rules converted to English units (hearth load, geometry, nozzle table)
+- `skill/references/design-data.md` — Quick-reference tables
 
 ## Notes
 
