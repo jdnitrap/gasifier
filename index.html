@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood Gasifier Design Calculator</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e7e9ea;
+      --muted: #8b98a5;
+      --accent: #1d9bf0;
+      --green: #00ba7c;
+      --border: #2f3336;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
+    input, select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { filter: brightness(1.1); }
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
+    .metric {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+    .metric .label { font-size: 0.8rem; color: var(--muted); }
+    .metric .value { font-size: 1.25rem; font-weight: 600; color: var(--green); }
+    .notes { font-size: 0.85rem; color: var(--muted); margin-top: 1rem; }
+    a { color: var(--accent); }
+    footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Wood Gasifier Design Calculator</h1>
+  <p class="subtitle">Home-scale Imbert / downdraft • English units • Based on FAO / SERI hearth-load rules</p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="mode">Design from</label>
+        <select id="mode">
+          <option value="wood">Wood feed rate</option>
+          <option value="power">Electric power target</option>
+        </select>
+      </div>
+      <div id="wood-group">
+        <label for="wood">Dry wood feed (lb/h)</label>
+        <input type="number" id="wood" value="8" min="1" max="100" step="0.5">
+      </div>
+      <div id="power-group" style="display:none">
+        <label for="power">Target electric power (kW)</label>
+        <input type="number" id="power" value="3" min="0.5" max="50" step="0.5">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="hearthload">Design hearth load (scf/h·in²)</label>
+        <input type="number" id="hearthload" value="2.45" min="1.0" max="2.95" step="0.05">
+      </div>
+      <div>
+        <label for="gasyield">Gas yield (scf / lb dry wood)</label>
+        <input type="number" id="gasyield" value="37" min="30" max="45" step="1">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="efficiency">Engine + generator efficiency</label>
+        <input type="number" id="efficiency" value="0.22" min="0.15" max="0.30" step="0.01">
+      </div>
+      <div>
+        <label for="imbert">Hearth style</label>
+        <select id="imbert">
+          <option value="true">Imbert (double throat, +8 in)</option>
+          <option value="false">Single throat (+4 in)</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="calculate()">Calculate Geometry</button>
+  </div>
+
+  <div class="card" id="results" style="display:none">
+    <h2 style="font-size:1.1rem; margin-bottom:1rem;">Recommended Geometry</h2>
+    <div class="result-grid" id="metrics"></div>
+    <p class="notes">
+      Throat size is the critical restriction that sets hearth load.<br>
+      Reduction zone height should be at least 8 in (typical 12–16 in).<br>
+      Nozzle plane is usually 1.0–1.6 × throat diameter above the throat.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1.1rem; margin-bottom:0.5rem;">Python Kinetic Model</h2>
+    <p class="notes" style="margin-bottom:0.75rem;">
+      Full design + reduction-zone kinetic model (starter version) is available as a Python script.
+    </p>
+    <a href="gasifier_design_model.py" download>Download gasifier_design_model.py</a>
+  </div>
+
+  <footer>
+    Built for practical home-scale gasifier design • jdnitrap/wood-gasifier
+  </footer>
+
+  <script>
+    const modeSelect = document.getElementById('mode');
+    modeSelect.addEventListener('change', () => {
+      document.getElementById('wood-group').style.display = modeSelect.value === 'wood' ? 'block' : 'none';
+      document.getElementById('power-group').style.display = modeSelect.value === 'power' ? 'block' : 'none';
+    });
+
+    function suggestNozzles(throat) {
+      const table = [
+        [2.76, 0.41, 3], [3.15, 0.35, 5], [3.54, 0.39, 5], [3.94, 0.43, 5],
+        [4.72, 0.50, 5], [5.12, 0.53, 5], [5.91, 0.59, 5], [6.69, 0.56, 7],
+        [7.48, 0.63, 7], [8.66, 0.71, 7], [10.63, 0.87, 7], [11.81, 0.94, 7]
+      ];
+      let closest = table[0];
+      let minDiff = Math.abs(table[0][0] - throat);
+      for (const row of table) {
+        const d = Math.abs(row[0] - throat);
+        if (d < minDiff) { minDiff = d; closest = row; }
+      }
+      return { dia: closest[1], num: closest[2], match: closest[0] };
+    }
+
+    function calculate() {
+      const mode = document.getElementById('mode').value;
+      const hearthLoad = parseFloat(document.getElementById('hearthload').value);
+      const gasYield = parseFloat(document.getElementById('gasyield').value);
+      const eff = parseFloat(document.getElementById('efficiency').value);
+      const imbert = document.getElementById('imbert').value === 'true';
+
+      let wood, gasFlow;
+      if (mode === 'wood') {
+        wood = parseFloat(document.getElementById('wood').value);
+        gasFlow = wood * gasYield;
+      } else {
+        const kW = parseFloat(document.getElementById('power').value);
+        // 1 kW = 3412 BTU/h, assume ~140 BTU/scf LHV
+        gasFlow = (kW * 3412) / (140 * eff);
+        wood = gasFlow / gasYield;
+      }
+
+      const throatArea = gasFlow / hearthLoad;
+      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
+      const hearthDia = throatDia + (imbert ? 8 : 4);
+      const nozzleHeight = Math.max(4, 1.2 * throatDia);
+      const nozzles = suggestNozzles(throatDia);
+
+      const metrics = [
+        { label: 'Dry wood feed', value: wood.toFixed(1) + ' lb/h' },
+        { label: 'Producer gas flow', value: Math.round(gasFlow) + ' scf/h' },
+        { label: 'Throat diameter', value: throatDia.toFixed(2) + ' in' },
+        { label: 'Throat area', value: throatArea.toFixed(1) + ' in²' },
+        { label: 'Hearth diameter (at nozzles)', value: hearthDia.toFixed(2) + ' in' },
+        { label: 'Nozzle plane height', value: nozzleHeight.toFixed(1) + ' in above throat' },
+        { label: 'Suggested nozzles', value: nozzles.num + ' × ' + nozzles.dia.toFixed(2) + ' in' },
+        { label: 'Closest FAO match', value: '~' + nozzles.match.toFixed(2) + ' in throat' },
+      ];
+
+      const container = document.getElementById('metrics');
+      container.innerHTML = metrics.map(m =>
+        `<div class="metric"><div class="label">${m.label}</div><div class="value">${m.value}</div></div>`
+      ).join('');
+      document.getElementById('results').style.display = 'block';
+    }
+
+    // Run once on load
+    calculate();
+  </script>
+</body>
+</html>
