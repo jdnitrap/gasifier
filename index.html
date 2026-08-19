@@ -20,9 +20,7 @@
       --red: #ef4444;
       --border: #3f4655;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: var(--bg);
@@ -30,21 +28,17 @@
       line-height: 1.5;
       padding: 1.5rem;
     }
-
     .container { max-width: 1800px; margin: 0 auto; }
-
     h1 { font-size: 2.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
     .subtitle { color: var(--muted); margin-bottom: 2rem; }
     h2 { font-size: 1.2rem; font-weight: 600; margin: 0 0 1rem 0; }
     h3 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; }
-
     .tabs {
       display: flex;
       gap: 0.5rem;
       margin-bottom: 2rem;
       border-bottom: 2px solid var(--border);
     }
-
     .tab-button {
       background: transparent;
       border: none;
@@ -56,13 +50,10 @@
       border-bottom: 3px solid transparent;
       transition: all 0.2s;
     }
-
     .tab-button:hover { color: var(--text); }
     .tab-button.active { color: var(--accent); border-bottom-color: var(--accent); }
-
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
     .section {
       background: var(--card);
       border: 2px solid;
@@ -70,37 +61,22 @@
       padding: 1.5rem;
       margin-bottom: 2rem;
     }
-
     .section-reactor { border-color: var(--green); }
     .section-reactor h2 { color: var(--green); }
-
     .section-downstream { border-color: var(--purple); }
     .section-downstream h2 { color: var(--purple); }
-
     .section-tar { border-color: var(--orange); }
     .section-tar h2 { color: var(--orange); }
-
     .section-idea { border-color: var(--cyan); }
     .section-idea h2 { color: var(--cyan); }
-
     .control-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
-    .control-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
+    .control-group { display: flex; flex-direction: column; }
+    label { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
     input[type="range"] {
       width: 100%;
       height: 6px;
@@ -109,7 +85,6 @@
       outline: none;
       -webkit-appearance: none;
     }
-
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
@@ -119,7 +94,6 @@
       background: var(--accent);
       cursor: pointer;
     }
-
     input[type="range"]::-moz-range-thumb {
       width: 16px;
       height: 16px;
@@ -128,19 +102,8 @@
       cursor: pointer;
       border: none;
     }
-
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-
+    .checkbox-group { display: flex; align-items: center; gap: 0.5rem; }
+    input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
     button {
       background: var(--green);
       color: white;
@@ -152,44 +115,34 @@
       cursor: pointer;
       margin-right: 0.5rem;
     }
-
     button:hover { filter: brightness(1.1); }
     button.secondary { background: var(--purple); }
-
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
     }
-
     .metric-card {
       background: rgba(0, 0, 0, 0.2);
       padding: 1rem;
       border-radius: 6px;
       border-left: 3px solid;
     }
-
     .metric-card.green { border-left-color: var(--green); }
     .metric-card.cyan { border-left-color: var(--cyan); }
     .metric-card.orange { border-left-color: var(--orange); }
     .metric-card.purple { border-left-color: var(--purple); }
     .metric-card.red { border-left-color: var(--red); }
-
     .metric-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
     .metric-value { font-size: 1.5rem; font-weight: 700; }
     .metric-unit { font-size: 0.7rem; color: var(--muted); }
-
     .side-by-side {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
       margin-bottom: 2rem;
     }
-
-    @media (max-width: 1200px) {
-      .side-by-side { grid-template-columns: 1fr; }
-    }
-
+    @media (max-width: 1200px) { .side-by-side { grid-template-columns: 1fr; } }
     .chart-container {
       background: var(--card);
       border: 1px solid var(--border);
@@ -198,9 +151,7 @@
       position: relative;
       height: 300px;
     }
-
     .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 1rem; }
-
     #threeDContainer {
       width: 100%;
       height: 600px;
@@ -209,28 +160,24 @@
       margin-bottom: 2rem;
       position: relative;
     }
-
     .three-controls {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
     .component-library {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1rem;
       margin-bottom: 2rem;
     }
-
     .component {
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 1rem;
     }
-
     .component-title {
       font-weight: 600;
       color: var(--accent);
@@ -239,15 +186,8 @@
       align-items: center;
       gap: 0.5rem;
     }
-
-    .component-icon {
-      font-size: 1.2rem;
-      width: 24px;
-      text-align: center;
-    }
-
+    .component-icon { font-size: 1.2rem; width: 24px; text-align: center; }
     .component-spec { font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0; }
-
     .warning {
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid var(--red);
@@ -257,7 +197,6 @@
       margin-top: 1rem;
       font-size: 0.85rem;
     }
-
     .success {
       background: rgba(16, 185, 129, 0.1);
       border: 1px solid var(--green);
@@ -267,7 +206,6 @@
       margin-top: 1rem;
       font-size: 0.85rem;
     }
-
     .flow-diagram {
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border);
@@ -280,7 +218,6 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-
     .flow-box {
       background: var(--card);
       border: 2px solid var(--cyan);
@@ -289,28 +226,21 @@
       text-align: center;
       min-width: 120px;
     }
-
-    .flow-arrow {
-      font-size: 2rem;
-      color: var(--cyan);
-    }
+    .flow-arrow { font-size: 2rem; color: var(--cyan); }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Wood Gasifier System Simulator</h1>
-    <p class="subtitle">Complete Physics Model | 3D Visualization | Component Design System | Real-world tested</p>
+    <p class="subtitle">English units | FAO / SERI consistent | 3D Visualization | Design rules from skill</p>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tab-button active" onclick="switchTab('simulator')">Simulator</button>
       <button class="tab-button" onclick="switchTab('model')">3D Model</button>
       <button class="tab-button" onclick="switchTab('design')">Design System</button>
     </div>
 
-    <!-- SIMULATOR TAB -->
     <div id="simulator" class="tab-content active">
-      <!-- REACTOR CONTROLS -->
       <div class="section section-reactor">
         <h2>REACTOR DESIGN</h2>
         <div class="control-grid">
@@ -323,16 +253,16 @@
             <input type="range" id="height" min="16" max="36" value="24" step="0.5">
           </div>
           <div class="control-group">
-            <label>Fuel Moisture (%): <span id="moistureVal">20</span></label>
-            <input type="range" id="moisture" min="5" max="50" value="20" step="1">
+            <label>Fuel Moisture (% wet basis): <span id="moistureVal">15</span></label>
+            <input type="range" id="moisture" min="5" max="35" value="15" step="1">
           </div>
           <div class="control-group">
-            <label>Feed Rate (lbm/h): <span id="feedVal">5.50</span></label>
-            <input type="range" id="feed" min="1" max="18" value="5.5" step="0.2">
+            <label>Dry Feed Rate (lb/h): <span id="feedVal">6.0</span></label>
+            <input type="range" id="feed" min="1" max="20" value="6" step="0.2">
           </div>
           <div class="control-group">
-            <label>Airflow (cfm): <span id="airflowVal">100</span></label>
-            <input type="range" id="airflow" min="20" max="200" value="100" step="2">
+            <label>Airflow (cfm): <span id="airflowVal">12</span></label>
+            <input type="range" id="airflow" min="2" max="40" value="12" step="0.5">
           </div>
           <div class="control-group checkbox-group">
             <input type="checkbox" id="insulation" checked>
@@ -341,17 +271,16 @@
         </div>
       </div>
 
-      <!-- DOWNSTREAM TARGETS -->
       <div class="section section-downstream">
         <h2>DOWNSTREAM TARGETS & SIMULATION</h2>
         <div class="control-grid">
           <div class="control-group">
             <label>Cooler Exit Target (°F): <span id="exitTempVal">150</span></label>
-            <input type="range" id="exitTemp" min="100" max="300" value="150" step="10">
+            <input type="range" id="exitTemp" min="100" max="250" value="150" step="10">
           </div>
           <div class="control-group">
-            <label>Engine Max Tar (oz/scf): <span id="maxTarVal">0.050</span></label>
-            <input type="range" id="maxTar" min="0.02" max="0.2" value="0.05" step="0.01">
+            <label>Engine Max Tar (mg/Nm³): <span id="maxTarVal">100</span></label>
+            <input type="range" id="maxTar" min="20" max="300" value="100" step="10">
           </div>
         </div>
         <div>
@@ -360,7 +289,6 @@
         </div>
       </div>
 
-      <!-- SYSTEM FLOW DIAGRAM -->
       <div class="section section-idea">
         <h2>SYSTEM FLOW</h2>
         <div class="flow-diagram">
@@ -378,45 +306,49 @@
         </div>
       </div>
 
-      <!-- REACTOR OUTPUT & DOWNSTREAM (SIDE BY SIDE) -->
       <div class="side-by-side">
         <div class="section section-reactor">
-          <h3>REACTOR OUTPUT (Real-World)</h3>
+          <h3>REACTOR OUTPUT</h3>
           <div class="metrics-grid">
             <div class="metric-card green">
               <div class="metric-label">Oxidation Zone Temp</div>
-              <div class="metric-value"><span id="tempF">1472</span></div>
+              <div class="metric-value"><span id="tempF">—</span></div>
               <div class="metric-unit">°F</div>
             </div>
             <div class="metric-card green">
               <div class="metric-label">Equivalence Ratio (ER)</div>
-              <div class="metric-value"><span id="er">0.000</span></div>
+              <div class="metric-value"><span id="er">—</span></div>
               <div class="metric-unit">—</div>
             </div>
             <div class="metric-card green">
-              <div class="metric-label">Efficiency</div>
-              <div class="metric-value"><span id="eff">0.0</span></div>
+              <div class="metric-label">Cold Gas Efficiency</div>
+              <div class="metric-value"><span id="eff">—</span></div>
               <div class="metric-unit">%</div>
             </div>
             <div class="metric-card orange">
               <div class="metric-label">Tar Content</div>
-              <div class="metric-value"><span id="tar">0.050</span></div>
-              <div class="metric-unit">oz/scf</div>
+              <div class="metric-value"><span id="tar">—</span></div>
+              <div class="metric-unit">mg/Nm³</div>
             </div>
             <div class="metric-card cyan">
               <div class="metric-label">Syngas Flow</div>
-              <div class="metric-value"><span id="scfm">0.0</span></div>
+              <div class="metric-value"><span id="scfm">—</span></div>
               <div class="metric-unit">scfm</div>
             </div>
             <div class="metric-card green">
               <div class="metric-label">Syngas Energy</div>
-              <div class="metric-value"><span id="energy">0</span></div>
+              <div class="metric-value"><span id="energy">—</span></div>
               <div class="metric-unit">Btu/h</div>
             </div>
             <div class="metric-card cyan">
               <div class="metric-label">Gas Exit Temp</div>
-              <div class="metric-value"><span id="exitTemp">960</span></div>
+              <div class="metric-value"><span id="gasExitTemp">—</span></div>
               <div class="metric-unit">°F</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-label">Hearth Load</div>
+              <div class="metric-value"><span id="hearthLoad">—</span></div>
+              <div class="metric-unit">scf/h·in²</div>
             </div>
           </div>
         </div>
@@ -426,67 +358,65 @@
           <div class="metrics-grid">
             <div class="metric-card green">
               <div class="metric-label">Cooler Heat Removal</div>
-              <div class="metric-value"><span id="coolerHeat">0</span></div>
+              <div class="metric-value"><span id="coolerHeat">—</span></div>
               <div class="metric-unit">Btu/h</div>
             </div>
             <div class="metric-card cyan">
               <div class="metric-label">Water Flow Required</div>
-              <div class="metric-value"><span id="waterFlow">0.00</span></div>
+              <div class="metric-value"><span id="waterFlow">—</span></div>
               <div class="metric-unit">gal/min</div>
             </div>
             <div class="metric-card green">
               <div class="metric-label">Cooler Surface Area</div>
-              <div class="metric-value"><span id="coolerArea">0.0</span></div>
+              <div class="metric-value"><span id="coolerArea">—</span></div>
               <div class="metric-unit">ft²</div>
             </div>
             <div class="metric-card orange">
               <div class="metric-label">Tar Trap Volume</div>
-              <div class="metric-value"><span id="trapVolume">0</span></div>
+              <div class="metric-value"><span id="trapVolume">—</span></div>
               <div class="metric-unit">gal</div>
             </div>
             <div class="metric-card orange">
               <div class="metric-label">Tar Per 2h Emptying</div>
-              <div class="metric-value"><span id="tarPerEmpty">0.00</span></div>
+              <div class="metric-value"><span id="tarPerEmpty">—</span></div>
               <div class="metric-unit">gal</div>
             </div>
             <div class="metric-card purple">
               <div class="metric-label">Filter Area</div>
-              <div class="metric-value"><span id="filterArea">0.0</span></div>
+              <div class="metric-value"><span id="filterArea">—</span></div>
               <div class="metric-unit">ft²</div>
             </div>
             <div class="metric-card red">
               <div class="metric-label">Pressure Drop</div>
-              <div class="metric-value"><span id="pressureDrop">0.00</span></div>
+              <div class="metric-value"><span id="pressureDrop">—</span></div>
               <div class="metric-unit">in H₂O</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- TAR MANAGEMENT -->
       <div class="section section-tar">
         <h2 id="tarStatus">TAR MANAGEMENT</h2>
         <div class="metrics-grid">
           <div class="metric-card orange">
             <div class="metric-label">Reactor Tar Output</div>
-            <div class="metric-value"><span id="reactorTar">0.050</span></div>
-            <div class="metric-unit">oz/scf</div>
+            <div class="metric-value"><span id="reactorTar">—</span></div>
+            <div class="metric-unit">mg/Nm³</div>
           </div>
           <div class="metric-card orange">
             <div class="metric-label">After Cooler</div>
-            <div class="metric-value"><span id="afterCoolerTar">0.008</span></div>
-            <div class="metric-unit">oz/scf</div>
+            <div class="metric-value"><span id="afterCoolerTar">—</span></div>
+            <div class="metric-unit">mg/Nm³</div>
           </div>
           <div class="metric-card cyan">
             <div class="metric-label">Engine Max</div>
-            <div class="metric-value"><span id="engineMax">0.050</span></div>
-            <div class="metric-unit">oz/scf</div>
+            <div class="metric-value"><span id="engineMax">—</span></div>
+            <div class="metric-unit">mg/Nm³</div>
           </div>
         </div>
         <div id="tarWarning"></div>
       </div>
 
-      <!-- CHARTS -->
       <div class="side-by-side">
         <div class="chart-container">
           <div class="chart-title">OXIDATION ZONE TEMPERATURE</div>
@@ -497,10 +427,9 @@
           <canvas id="effChart"></canvas>
         </div>
       </div>
-
       <div class="side-by-side">
         <div class="chart-container">
-          <div class="chart-title">TAR CONTENT</div>
+          <div class="chart-title">TAR CONTENT (mg/Nm³)</div>
           <canvas id="tarChart"></canvas>
         </div>
         <div class="chart-container">
@@ -510,12 +439,10 @@
       </div>
     </div>
 
-    <!-- 3D MODEL TAB -->
     <div id="model" class="tab-content">
       <div class="section section-reactor">
         <h2>3D GASIFIER MODEL</h2>
-        <p style="margin-bottom: 1rem; color: var(--muted);">Interactive 3D visualization that updates with your parameters. Drag to rotate, scroll to zoom.</p>
-
+        <p style="margin-bottom: 1rem; color: var(--muted);">Interactive 3D visualization. Drag to rotate, scroll to zoom.</p>
         <div class="three-controls">
           <div class="control-group checkbox-group">
             <input type="checkbox" id="showReactor" checked onchange="updateThreeScene()">
@@ -534,23 +461,18 @@
             <label for="showTarTrap" style="margin-bottom: 0;">Show Tar Trap</label>
           </div>
         </div>
-
         <div id="threeDContainer"></div>
-        <p style="color: var(--muted); font-size: 0.85rem;">Model updates in real-time as you adjust reactor parameters</p>
       </div>
     </div>
 
-    <!-- DESIGN SYSTEM TAB -->
     <div id="design" class="tab-content">
       <div class="section section-idea">
         <h2>COMPONENT DESIGN SYSTEM</h2>
-        <p style="margin-bottom: 2rem; color: var(--muted);">Physical components, specifications, and design rules from FAO / SERI guidelines</p>
-
+        <p style="margin-bottom: 2rem; color: var(--muted);">Physical components and design rules from FAO / SERI / skill</p>
         <div class="component-library" id="componentLibrary"></div>
       </div>
-
       <div class="section section-reactor">
-        <h2>DESIGN RULES REFERENCE</h2>
+        <h2>DESIGN RULES REFERENCE (from skill)</h2>
         <div class="metrics-grid">
           <div class="metric-card green">
             <div class="metric-label">Hearth Load Range</div>
@@ -580,7 +502,7 @@
           <div class="metric-card cyan">
             <div class="metric-label">Fuel Moisture Max</div>
             <div class="metric-value">15–20</div>
-            <div class="metric-unit">%</div>
+            <div class="metric-unit">% wet basis</div>
           </div>
           <div class="metric-card orange">
             <div class="metric-label">Equivalence Ratio</div>
@@ -598,7 +520,6 @@
   </div>
 
   <script>
-    // ============ STATE ============
     const state = {
       timeStep: 0,
       isRunning: false,
@@ -610,434 +531,288 @@
       threeObjects: {}
     };
 
-    // ============ PHYSICS CONSTANTS ============
-    const PINE_STRAW_LHV = 6450;
-    const AIR_DENSITY = 0.076;
-    const REAL_WORLD = {
-      char_loss: 0.18,
-      wall_loss: 0.05,
-      cooler_loss: 0.03,
-      tar_multiplier: 3.0,
-      startup_tar: 2.5,
-      startup_duration: 10,
-      ash_interval: 180,
-    };
+    // ===== PHYSICS CONSTANTS (skill / FAO consistent) =====
+    const WOOD_LHV_DRY = 8000;          // Btu/lb dry wood (typical)
+    const AIR_DENSITY = 0.076;          // lb/ft³ at standard conditions
+    const GAS_YIELD = 37;               // scf producer gas per lb dry wood (skill: 35–40)
+    const STOICH_AIR = 6.2;             // lb air per lb dry wood (stoichiometric)
+    // Typical engine tar limit ~50–100 mg/Nm³
 
-    // ============ REACTOR CALCULATION (VERIFIED PHYSICS) ============
     function calculateReactor() {
       const diameter = parseFloat(document.getElementById('diameter').value);
       const height = parseFloat(document.getElementById('height').value);
       const moisture = parseFloat(document.getElementById('moisture').value);
-      const feed = parseFloat(document.getElementById('feed').value);
-      const airflow = parseFloat(document.getElementById('airflow').value);
+      const feedDry = parseFloat(document.getElementById('feed').value); // already dry basis
+      const airflowCfm = parseFloat(document.getElementById('airflow').value);
       const insulated = document.getElementById('insulation').checked;
 
-      // Geometry (FAO/SERI verified)
-      const diameterFt = diameter / 12;
-      const heightFt = height / 12;
-      const areaSqFt = Math.PI * Math.pow(diameterFt / 2, 2);
-      const volumeFt3 = areaSqFt * heightFt;
+      const areaIn2 = Math.PI * Math.pow(diameter / 2, 2);
+      const throatAreaIn2 = areaIn2; // simplified; real Imbert has constriction
 
-      // Fuel energy calculation
-      const dryLHV = PINE_STRAW_LHV;
-      const wetLHV = dryLHV * (100 - moisture) / 100;
-      const fuelMass = feed;
-      const airMass = airflow * AIR_DENSITY * 60;
+      // Air mass flow (lb/h)
+      const airMass = airflowCfm * AIR_DENSITY * 60;
 
-      // Equivalence ratio (from FAO - 1.0-1.5 lb air per lb dry wood)
-      const er = airMass / (fuelMass * 11.5);
+      // Equivalence ratio (skill: 0.25–0.35)
+      const er = airMass / (feedDry * STOICH_AIR);
 
-      // Oxidation zone temperature (empirical model verified)
-      let tempF = 1472;
-      if (er > 0.2) {
-        const energy = fuelMass * wetLHV * er;
-        const energyDensity = energy / volumeFt3;
-        tempF = 932 + (energyDensity * 0.004);
-        tempF = Math.min(tempF, 2372);
-      }
-
-      const tempC = (tempF - 32) * 5 / 9;
-
-      // Tar formation model (from SERI downdraft guidelines)
-      let tarContent = 0.05; // Downdraft baseline
-      if (tempC > 482) { // >900°C reduces tar
-        tarContent = tarContent * (592 - tempC) / 110;
-      } else if (tempC < 427) { // <800°C increases tar
-        tarContent = 0.15 * ((427 - tempC) / 100 + 1);
-      }
-      tarContent = Math.max(tarContent, 0.005);
-
-      // Gas composition model (FAO/SERI validated ranges)
-      const coFrac = 0.12 + (tempC - 427) / 2760;
-      const h2Frac = 0.08 + er * 0.05;
-      const ch4Frac = Math.max(0.04 - er * 0.02, 0.01);
-      const co2Frac = 0.10 + (0.35 - er) * 0.15;
-      const n2Frac = Math.max(1 - coFrac - h2Frac - ch4Frac - co2Frac, 0);
-
-      // Gas flow (from gas yield: 35-40 scf/lb dry wood)
-      const scfh = fuelMass * 92 * (100 - moisture) / 100;
+      // Gas flow from skill yield
+      const scfh = feedDry * GAS_YIELD;
       const scfm = scfh / 60;
 
-      // Energy content (typical 120-160 Btu/scf)
-      const energyPerScf = (coFrac * 318 + h2Frac * 325 + ch4Frac * 1010) /
-        (coFrac + h2Frac + ch4Frac + co2Frac + n2Frac);
-      const energyBtuh = scfh * energyPerScf;
+      // Hearth load (skill design point 2.3–2.6)
+      const hearthLoad = scfh / throatAreaIn2;
 
-      const efficiency = (energyBtuh / (fuelMass * wetLHV)) * 100;
-      const exitTemp = insulated ? tempF * 0.65 : tempF * 0.5;
+      // Simple oxidation temperature model
+      // Higher ER and better insulation → hotter
+      let tempF = 1100 + er * 1800 + (insulated ? 150 : 0);
+      tempF = Math.max(900, Math.min(tempF, 2100));
 
-      const ideal = { tempF, tempC, tarContent, efficiency, scfm, energyBtuh, exitTemp, er };
+      // Tar model (mg/Nm³) — lower at higher temp and proper ER
+      // Good downdraft: 50–200 mg/Nm³; poor conditions much higher
+      let tarMg = 400;
+      if (tempF > 1600) tarMg = 80 + (2100 - tempF) * 0.15;
+      else if (tempF > 1400) tarMg = 150 + (1600 - tempF) * 0.8;
+      else tarMg = 400 + (1400 - tempF) * 1.5;
+      if (er < 0.22 || er > 0.40) tarMg *= 1.8;
+      if (!insulated) tarMg *= 1.6;
+      tarMg = Math.max(30, Math.min(tarMg, 2000));
 
-      // Real-world corrections
-      let realTar = tarContent;
-      if (!insulated) realTar = tarContent * REAL_WORLD.tar_multiplier;
+      // Rough LHV of gas (Btu/scf)
+      const gasLHV = 130 + (er - 0.25) * 40; // typical 120–160
+      const energyBtuh = scfh * gasLHV;
 
-      const realEnergy = energyBtuh * (1 - REAL_WORLD.char_loss - REAL_WORLD.wall_loss - REAL_WORLD.cooler_loss);
-      const realEff = (realEnergy / (fuelMass * wetLHV)) * 100;
+      // Cold-gas efficiency
+      const fuelEnergy = feedDry * WOOD_LHV_DRY;
+      const efficiency = (energyBtuh / fuelEnergy) * 100;
 
-      const real = { tempF, tempC, tarContent: realTar, efficiency: realEff, scfm, energyBtuh: realEnergy, exitTemp, er };
+      const exitTemp = insulated ? tempF * 0.55 : tempF * 0.45;
 
-      return { ideal, real };
+      return {
+        tempF,
+        er,
+        efficiency,
+        tarMg,
+        scfm,
+        scfh,
+        energyBtuh,
+        exitTemp,
+        hearthLoad,
+        areaIn2
+      };
     }
 
-    // ============ DOWNSTREAM CALCULATION (VERIFIED) ============
     function calculateDownstream(reactor) {
-      const exitTemp = parseFloat(document.getElementById('exitTemp').value);
+      const targetExit = parseFloat(document.getElementById('exitTemp').value);
       const maxTar = parseFloat(document.getElementById('maxTar').value);
 
-      const scfm = reactor.real.scfm;
-      const energy = reactor.real.energyBtuh;
-      const tarContent = reactor.real.tarContent;
-      const gasExit = reactor.real.exitTemp;
+      const scfm = reactor.scfm;
+      const gasExit = reactor.exitTemp;
+      const tarMg = reactor.tarMg;
 
-      // Cooler sizing (counter-flow, effectiveness ~0.65)
-      const gasFlow = scfm * AIR_DENSITY * 60;
-      const cp = 0.28;
-      const tempDrop = gasExit - exitTemp;
-      const heatRemoved = gasFlow * cp * tempDrop;
-      const waterFlow = heatRemoved / (1.0 * 80);
-      const waterGpm = waterFlow / 60 / 8.34;
-      const coolerArea = heatRemoved / 1000 * 1.5;
+      // Cooler heat removal (rough)
+      const gasLbH = scfm * AIR_DENSITY * 60;
+      const cp = 0.28; // Btu/lb·°F
+      const tempDrop = Math.max(0, gasExit - targetExit);
+      const heatRemoved = gasLbH * cp * tempDrop;
 
-      // Tar trap (typical removes 85% of liquid tar)
-      const tarMass = (tarContent / 16) * scfm * 60;
-      const tarCondensed = tarMass * 0.85;
-      const tarPerEmpty = tarCondensed * 2 / 7.5;
-      const trapVolume = Math.ceil((scfm * 3) / 7.48 * 1.5);
+      // Water side (assume 80°F rise)
+      const waterLbH = heatRemoved / 80;
+      const waterGpm = waterLbH / (60 * 8.34);
 
-      let tarAfterCooler = tarContent * 0.15;
+      // Surface area estimate
+      const coolerArea = heatRemoved / 1200; // rough U·ΔT
+
+      // Tar condensation (cooler removes majority of condensable tar)
+      const tarAfterCooler = tarMg * 0.18; // residual after good cooler
       const needsCracker = tarAfterCooler > maxTar;
 
-      // Filter sizing (standard 100 cfm per ft²)
-      const filterArea = (scfm / 100) * 1.5;
-      const pressureDrop = 0.5 + 0.3 + 0.3;
+      // Tar mass for trap sizing (very approximate)
+      // 1 mg/Nm³ ≈ 0.028 mg/scf; convert to mass
+      const tarLbH = (tarMg * 0.028 * reactor.scfh) / 453600; // rough
+      const tarGalPer2h = (tarLbH * 2) / 7.5; // assume density ~7.5 lb/gal
+
+      const trapVolume = Math.max(1, Math.ceil(scfm * 0.15));
+      const filterArea = (scfm / 80) * 1.2;
+      const pressureDrop = 0.4 + 0.3 + 0.25;
 
       return {
         heatRemoved,
-        waterFlow: waterGpm,
+        waterGpm,
         coolerArea,
-        tarMass,
-        tarPerEmpty,
-        trapVolume,
         tarAfterCooler,
         needsCracker,
+        tarGalPer2h,
+        trapVolume,
         filterArea,
         pressureDrop
       };
     }
 
-    // ============ UPDATE DISPLAY ============
     function updateDisplay() {
       document.getElementById('diameterVal').textContent = parseFloat(document.getElementById('diameter').value).toFixed(1);
       document.getElementById('heightVal').textContent = parseFloat(document.getElementById('height').value).toFixed(1);
       document.getElementById('moistureVal').textContent = parseFloat(document.getElementById('moisture').value).toFixed(0);
-      document.getElementById('feedVal').textContent = parseFloat(document.getElementById('feed').value).toFixed(2);
-      document.getElementById('airflowVal').textContent = parseFloat(document.getElementById('airflow').value).toFixed(0);
+      document.getElementById('feedVal').textContent = parseFloat(document.getElementById('feed').value).toFixed(1);
+      document.getElementById('airflowVal').textContent = parseFloat(document.getElementById('airflow').value).toFixed(1);
       document.getElementById('exitTempVal').textContent = parseFloat(document.getElementById('exitTemp').value).toFixed(0);
-      document.getElementById('maxTarVal').textContent = (parseFloat(document.getElementById('maxTar').value) / 1000).toFixed(3);
+      document.getElementById('maxTarVal').textContent = parseFloat(document.getElementById('maxTar').value).toFixed(0);
 
       const reactor = calculateReactor();
       const downstream = calculateDownstream(reactor);
 
-      // Reactor metrics
-      document.getElementById('tempF').textContent = reactor.real.tempF.toFixed(0);
-      document.getElementById('er').textContent = reactor.real.er.toFixed(3);
-      document.getElementById('eff').textContent = reactor.real.efficiency.toFixed(1);
-      document.getElementById('tar').textContent = reactor.real.tarContent.toFixed(3);
-      document.getElementById('scfm').textContent = reactor.real.scfm.toFixed(1);
-      document.getElementById('energy').textContent = reactor.real.energyBtuh.toFixed(0);
-      document.getElementById('exitTemp').textContent = reactor.real.exitTemp.toFixed(0);
+      document.getElementById('tempF').textContent = reactor.tempF.toFixed(0);
+      document.getElementById('er').textContent = reactor.er.toFixed(3);
+      document.getElementById('eff').textContent = reactor.efficiency.toFixed(1);
+      document.getElementById('tar').textContent = reactor.tarMg.toFixed(0);
+      document.getElementById('scfm').textContent = reactor.scfm.toFixed(2);
+      document.getElementById('energy').textContent = Math.round(reactor.energyBtuh);
+      document.getElementById('gasExitTemp').textContent = reactor.exitTemp.toFixed(0);
+      document.getElementById('hearthLoad').textContent = reactor.hearthLoad.toFixed(2);
 
-      // Downstream metrics
-      document.getElementById('coolerHeat').textContent = downstream.heatRemoved.toFixed(0);
-      document.getElementById('waterFlow').textContent = downstream.waterFlow.toFixed(2);
+      document.getElementById('coolerHeat').textContent = Math.round(downstream.heatRemoved);
+      document.getElementById('waterFlow').textContent = downstream.waterGpm.toFixed(2);
       document.getElementById('coolerArea').textContent = downstream.coolerArea.toFixed(1);
       document.getElementById('trapVolume').textContent = downstream.trapVolume;
-      document.getElementById('tarPerEmpty').textContent = downstream.tarPerEmpty.toFixed(2);
-      document.getElementById('filterArea').textContent = downstream.filterArea.toFixed(1);
+      document.getElementById('tarPerEmpty').textContent = downstream.tarGalPer2h.toFixed(3);
+      document.getElementById('filterArea').textContent = downstream.filterArea.toFixed(2);
       document.getElementById('pressureDrop').textContent = downstream.pressureDrop.toFixed(2);
 
-      // Tar management
-      document.getElementById('reactorTar').textContent = reactor.real.tarContent.toFixed(3);
-      document.getElementById('afterCoolerTar').textContent = downstream.tarAfterCooler.toFixed(3);
-      document.getElementById('engineMax').textContent = (parseFloat(document.getElementById('maxTar').value) / 1000).toFixed(3);
+      document.getElementById('reactorTar').textContent = reactor.tarMg.toFixed(0);
+      document.getElementById('afterCoolerTar').textContent = downstream.tarAfterCooler.toFixed(0);
+      document.getElementById('engineMax').textContent = parseFloat(document.getElementById('maxTar').value).toFixed(0);
 
       const tarStatus = document.getElementById('tarStatus');
       const tarWarning = document.getElementById('tarWarning');
       if (downstream.needsCracker) {
-        tarStatus.textContent = 'TAR MANAGEMENT ⚠️ THERMAL CRACKER NEEDED';
+        tarStatus.textContent = 'TAR MANAGEMENT ⚠️ ADDITIONAL CRACKING NEEDED';
         tarStatus.style.color = 'var(--red)';
-        tarWarning.innerHTML = `<div class="warning">Tar at ${downstream.tarAfterCooler.toFixed(3)} oz/scf exceeds engine limit. Add thermal cracker (~$300) to reduce tar to ~0.02 oz/scf.</div>`;
+        tarWarning.innerHTML = `<div class="warning">After cooler: ${downstream.tarAfterCooler.toFixed(0)} mg/Nm³ exceeds engine limit of ${document.getElementById('maxTar').value} mg/Nm³. Improve oxidation temperature, insulation, or add thermal cracker / better filtration.</div>`;
       } else {
-        tarStatus.textContent = 'TAR MANAGEMENT ✓ COOLER SUFFICIENT';
-        tarStatus.style.color = 'var(--orange)';
-        tarWarning.innerHTML = `<div class="success">Tar management sufficient with cooler alone.</div>`;
+        tarStatus.textContent = 'TAR MANAGEMENT ✓ WITHIN LIMIT';
+        tarStatus.style.color = 'var(--green)';
+        tarWarning.innerHTML = `<div class="success">Tar after cooler is within the selected engine limit.</div>`;
       }
 
       updateThreeScene();
     }
 
-    // ============ 3D MODEL ============
+    // ===== 3D (unchanged structure) =====
     function initThreeScene() {
       const container = document.getElementById('threeDContainer');
       const width = container.clientWidth;
       const height = container.clientHeight;
-
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x1a1f2e);
-
       const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
       camera.position.set(30, 30, 30);
       camera.lookAt(0, 0, 0);
-
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(width, height);
-      renderer.shadowMap.enabled = true;
       container.appendChild(renderer.domElement);
-
-      // Lighting
       const light1 = new THREE.DirectionalLight(0xffffff, 0.8);
       light1.position.set(50, 50, 50);
-      light1.castShadow = true;
       scene.add(light1);
-
-      const light2 = new THREE.AmbientLight(0xffffff, 0.4);
-      scene.add(light2);
-
-      // Grid
-      const gridHelper = new THREE.GridHelper(100, 10, 0x444444, 0x222222);
-      scene.add(gridHelper);
-
+      scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+      scene.add(new THREE.GridHelper(100, 10, 0x444444, 0x222222));
       state.threeScene = scene;
       state.threeRenderer = renderer;
       state.threeCamera = camera;
 
-      // Handle resize
-      window.addEventListener('resize', () => {
-        const newWidth = container.clientWidth;
-        const newHeight = container.clientHeight;
-        camera.aspect = newWidth / newHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(newWidth, newHeight);
+      let isDragging = false, prev = {x:0,y:0};
+      renderer.domElement.addEventListener('mousedown', e => { isDragging = true; prev = {x:e.clientX,y:e.clientY}; });
+      renderer.domElement.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+        const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(dy, dx, 0).normalize(), Math.sqrt(dx*dx+dy*dy)*0.01);
+        state.threeScene.quaternion.multiplyQuaternions(q, state.threeScene.quaternion);
+        prev = {x:e.clientX,y:e.clientY};
       });
+      renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+      renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); camera.position.multiplyScalar(1 + e.deltaY * 0.001); });
 
-      // Mouse controls
-      let isDragging = false;
-      let previousMousePosition = { x: 0, y: 0 };
-
-      renderer.domElement.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        previousMousePosition = { x: e.clientX, y: e.clientY };
-      });
-
-      renderer.domElement.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-          const deltaX = e.clientX - previousMousePosition.x;
-          const deltaY = e.clientY - previousMousePosition.y;
-
-          const axis = new THREE.Vector3(deltaY, deltaX, 0).normalize();
-          const angle = Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 0.01;
-
-          const quaternion = new THREE.Quaternion();
-          quaternion.setFromAxisAngle(axis, angle);
-
-          state.threeScene.quaternion.multiplyQuaternions(quaternion, state.threeScene.quaternion);
-
-          previousMousePosition = { x: e.clientX, y: e.clientY };
-        }
-      });
-
-      renderer.domElement.addEventListener('mouseup', () => { isDragging = false; });
-      renderer.domElement.addEventListener('mouseleave', () => { isDragging = false; });
-
-      renderer.domElement.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        camera.position.multiplyScalar(1 + e.deltaY * 0.001);
-      });
-
-      function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      }
+      function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
       animate();
     }
 
     function updateThreeScene() {
       if (!state.threeScene) return;
-
-      // Clear previous objects
-      Object.values(state.threeObjects).forEach(obj => {
-        if (obj) state.threeScene.remove(obj);
-      });
+      Object.values(state.threeObjects).forEach(o => { if (o) state.threeScene.remove(o); });
       state.threeObjects = {};
-
-      const diameter = parseFloat(document.getElementById('diameter').value) / 12;
-      const height = parseFloat(document.getElementById('height').value) / 12;
-      const showReactor = document.getElementById('showReactor').checked;
-      const showCooler = document.getElementById('showCooler').checked;
-      const showFilter = document.getElementById('showFilter').checked;
-      const showTarTrap = document.getElementById('showTarTrap').checked;
-
-      // Reactor (cone)
-      if (showReactor) {
-        const geometry = new THREE.ConeGeometry(diameter, height, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0xf97316, metalness: 0.6, roughness: 0.4 });
-        const reactor = new THREE.Mesh(geometry, material);
-        reactor.castShadow = true;
-        reactor.receiveShadow = true;
-        state.threeScene.add(reactor);
-        state.threeObjects.reactor = reactor;
+      const d = parseFloat(document.getElementById('diameter').value) / 12;
+      const h = parseFloat(document.getElementById('height').value) / 12;
+      if (document.getElementById('showReactor').checked) {
+        const m = new THREE.Mesh(new THREE.ConeGeometry(d, h, 32), new THREE.MeshStandardMaterial({color:0xf97316, metalness:0.6, roughness:0.4}));
+        state.threeScene.add(m); state.threeObjects.reactor = m;
       }
-
-      // Cooler (cylinder, offset)
-      if (showCooler) {
-        const geometry = new THREE.CylinderGeometry(diameter * 0.6, diameter * 0.6, height * 0.8, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0x06b6d4, metalness: 0.7, roughness: 0.3 });
-        const cooler = new THREE.Mesh(geometry, material);
-        cooler.position.set(diameter * 3, 0, 0);
-        cooler.castShadow = true;
-        cooler.receiveShadow = true;
-        state.threeScene.add(cooler);
-        state.threeObjects.cooler = cooler;
+      if (document.getElementById('showCooler').checked) {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(d*0.6, d*0.6, h*0.8, 32), new THREE.MeshStandardMaterial({color:0x06b6d4, metalness:0.7, roughness:0.3}));
+        m.position.set(d*3, 0, 0); state.threeScene.add(m); state.threeObjects.cooler = m;
       }
-
-      // Tar Trap (small box)
-      if (showTarTrap) {
-        const geometry = new THREE.BoxGeometry(diameter * 0.8, diameter * 1.2, diameter * 0.8);
-        const material = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.6, roughness: 0.4 });
-        const trap = new THREE.Mesh(geometry, material);
-        trap.position.set(diameter * 6, 0, 0);
-        trap.castShadow = true;
-        trap.receiveShadow = true;
-        state.threeScene.add(trap);
-        state.threeObjects.tarTrap = trap;
+      if (document.getElementById('showTarTrap').checked) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(d*0.8, d*1.2, d*0.8), new THREE.MeshStandardMaterial({color:0xf59e0b, metalness:0.6, roughness:0.4}));
+        m.position.set(d*6, 0, 0); state.threeScene.add(m); state.threeObjects.tarTrap = m;
       }
-
-      // Filter (cylinder, tall)
-      if (showFilter) {
-        const geometry = new THREE.CylinderGeometry(diameter * 0.4, diameter * 0.4, height * 1.5, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.5, roughness: 0.5 });
-        const filter = new THREE.Mesh(geometry, material);
-        filter.position.set(diameter * 9, 0, 0);
-        filter.castShadow = true;
-        filter.receiveShadow = true;
-        state.threeScene.add(filter);
-        state.threeObjects.filter = filter;
+      if (document.getElementById('showFilter').checked) {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(d*0.4, d*0.4, h*1.5, 32), new THREE.MeshStandardMaterial({color:0x8b5cf6, metalness:0.5, roughness:0.5}));
+        m.position.set(d*9, 0, 0); state.threeScene.add(m); state.threeObjects.filter = m;
       }
     }
 
-    // ============ CHARTS ============
     function initCharts() {
-      const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--muted)' } } },
+      const opts = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#a1a1aa' } } },
         scales: {
-          x: { ticks: { color: 'var(--muted)' }, grid: { color: 'var(--border)' } },
-          y: { ticks: { color: 'var(--muted)' }, grid: { color: 'var(--border)' } }
+          x: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } },
+          y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } }
         }
       };
-
       state.charts.temp = new Chart(document.getElementById('tempChart'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Real-World (°F)', data: [], borderColor: '#f97316', tension: 0.1, fill: false }] },
-        options: chartOptions
+        type: 'line', data: { labels: [], datasets: [{ label: 'Temp (°F)', data: [], borderColor: '#f97316', tension: 0.1, fill: false }] }, options: opts
       });
-
       state.charts.eff = new Chart(document.getElementById('effChart'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Efficiency (%)', data: [], borderColor: '#10b981', tension: 0.1, fill: false }] },
-        options: chartOptions
+        type: 'line', data: { labels: [], datasets: [{ label: 'Efficiency (%)', data: [], borderColor: '#10b981', tension: 0.1, fill: false }] }, options: opts
       });
-
       state.charts.tar = new Chart(document.getElementById('tarChart'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Real Tar (oz/scf)', data: [], borderColor: '#f59e0b', tension: 0.1, fill: false }] },
-        options: chartOptions
+        type: 'line', data: { labels: [], datasets: [{ label: 'Tar (mg/Nm³)', data: [], borderColor: '#f59e0b', tension: 0.1, fill: false }] }, options: opts
       });
-
       state.charts.perf = new Chart(document.getElementById('perfChart'), {
         type: 'line',
         data: { labels: [], datasets: [
           { label: 'Cooler Heat (Btu/h)', data: [], borderColor: '#06b6d4', yAxisID: 'y', tension: 0.1, fill: false },
-          { label: 'Water Flow (gal/min)', data: [], borderColor: '#8b5cf6', yAxisID: 'y1', tension: 0.1, fill: false }
-        ] },
-        options: {
-          ...chartOptions,
-          scales: {
-            y: { ...chartOptions.scales.y, position: 'left' },
-            y1: { ...chartOptions.scales.y, position: 'right', grid: { drawOnChartArea: false } }
-          }
-        }
+          { label: 'Water (gpm)', data: [], borderColor: '#8b5cf6', yAxisID: 'y1', tension: 0.1, fill: false }
+        ]},
+        options: { ...opts, scales: { y: { ...opts.scales.y, position: 'left' }, y1: { ...opts.scales.y, position: 'right', grid: { drawOnChartArea: false } } } }
       });
     }
 
     function updateCharts() {
-      const reactor = calculateReactor();
-      const downstream = calculateDownstream(reactor);
-
+      const r = calculateReactor();
+      const d = calculateDownstream(r);
       state.history.push({
         time: state.timeStep,
-        temp: reactor.real.tempF + (Math.random() - 0.5) * 25,
-        eff: reactor.real.efficiency + (Math.random() - 0.5) * 3,
-        tar: reactor.real.tarContent + (Math.random() - 0.5) * 0.005,
-        heat: downstream.heatRemoved,
-        water: downstream.waterFlow
+        temp: r.tempF + (Math.random()-0.5)*20,
+        eff: r.efficiency + (Math.random()-0.5)*2,
+        tar: r.tarMg + (Math.random()-0.5)*15,
+        heat: d.heatRemoved,
+        water: d.waterGpm
       });
-
       if (state.history.length > 60) state.history.shift();
-
-      const times = state.history.map(h => h.time);
-      state.charts.temp.data.labels = times;
-      state.charts.temp.data.datasets[0].data = state.history.map(h => h.temp);
-      state.charts.temp.update('none');
-
-      state.charts.eff.data.labels = times;
-      state.charts.eff.data.datasets[0].data = state.history.map(h => h.eff);
-      state.charts.eff.update('none');
-
-      state.charts.tar.data.labels = times;
-      state.charts.tar.data.datasets[0].data = state.history.map(h => h.tar);
-      state.charts.tar.update('none');
-
-      state.charts.perf.data.labels = times;
+      const t = state.history.map(h => h.time);
+      state.charts.temp.data.labels = t; state.charts.temp.data.datasets[0].data = state.history.map(h => h.temp); state.charts.temp.update('none');
+      state.charts.eff.data.labels = t; state.charts.eff.data.datasets[0].data = state.history.map(h => h.eff); state.charts.eff.update('none');
+      state.charts.tar.data.labels = t; state.charts.tar.data.datasets[0].data = state.history.map(h => h.tar); state.charts.tar.update('none');
+      state.charts.perf.data.labels = t;
       state.charts.perf.data.datasets[0].data = state.history.map(h => h.heat);
       state.charts.perf.data.datasets[1].data = state.history.map(h => h.water);
       state.charts.perf.update('none');
     }
 
-    // ============ SIMULATION ============
     function startSimulation() {
       state.isRunning = !state.isRunning;
       if (state.isRunning) {
-        state.simInterval = setInterval(() => {
-          state.timeStep++;
-          updateDisplay();
-          updateCharts();
-        }, 500);
-      } else {
-        clearInterval(state.simInterval);
-      }
+        state.simInterval = setInterval(() => { state.timeStep++; updateDisplay(); updateCharts(); }, 500);
+      } else clearInterval(state.simInterval);
     }
 
     function resetSimulation() {
@@ -1045,62 +820,40 @@
       clearInterval(state.simInterval);
       state.timeStep = 0;
       state.history = [];
-      state.charts.temp.data.labels = [];
-      state.charts.temp.data.datasets[0].data = [];
-      state.charts.eff.data.labels = [];
-      state.charts.eff.data.datasets[0].data = [];
-      state.charts.tar.data.labels = [];
-      state.charts.tar.data.datasets[0].data = [];
-      state.charts.perf.data.labels = [];
-      state.charts.perf.data.datasets[0].data = [];
-      state.charts.perf.data.datasets[1].data = [];
-      Object.values(state.charts).forEach(c => c.update());
+      Object.values(state.charts).forEach(c => { c.data.labels = []; c.data.datasets.forEach(ds => ds.data = []); c.update(); });
       updateDisplay();
     }
 
-    // ============ TAB NAVIGATION ============
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
       document.getElementById(tabName).classList.add('active');
       event.target.classList.add('active');
-
       if (tabName === 'model' && !state.threeScene) {
         setTimeout(initThreeScene, 100);
         setTimeout(updateThreeScene, 150);
       }
     }
 
-    // ============ DESIGN SYSTEM ============
     function initDesignSystem() {
       const components = [
-        { icon: '🔥', name: 'Gasifier Reactor', specs: ['Diameter: 4-12"', 'Height: 16-36"', 'Material: Steel + Insulation', 'Throat: Critical restriction'] },
-        { icon: '🌊', name: 'Cooler Unit', specs: ['Type: Counter-flow', 'Surface: 1000+ Btu/h·°F·ft²', 'Water flow: 0-10 gal/min', 'Material: Copper/Stainless'] },
-        { icon: '🛢️', name: 'Tar Trap', specs: ['Volume: 2-5 gallons', 'Residency: 3+ minutes', 'Emptying: Every 2-4 hours', 'Material: Steel'] },
-        { icon: '🔧', name: 'Filter Unit', specs: ['Type: Packed bed or fabric', 'Area: 0.01-0.05 ft²/cfm', 'Media: Sawdust/charcoal', 'Pressure drop: <2 in H₂O'] },
-        { icon: '💨', name: 'Air Injection', specs: ['Nozzles: 3-7 pieces', 'Diameter: 0.35-0.94"', 'Velocity: 100-115 ft/s', 'Air mass: 1-1.5 lb/lb wood'] },
-        { icon: '⚙️', name: 'Engine Interface', specs: ['Tar limit: <0.05 oz/scf', 'Gas derate: 20-40%', 'Air-fuel mix: Critical', 'Cooling: 80-95°F gas'] }
+        { icon: '🔥', name: 'Gasifier Reactor', specs: ['Diameter: 4–12 in', 'Height: 16–36 in', 'Material: Steel + insulation', 'Throat / hearth load critical'] },
+        { icon: '🌊', name: 'Cooler Unit', specs: ['Type: Counter-flow', 'Target exit: 100–150 °F', 'Water flow calculated', 'Material: Copper / stainless'] },
+        { icon: '🛢️', name: 'Tar Trap', specs: ['Volume sized to flow', 'Empty periodically', 'Material: Steel'] },
+        { icon: '🔧', name: 'Filter Unit', specs: ['Packed bed or fabric', 'Area ~0.01–0.02 ft²/cfm', 'Media: sawdust / charcoal'] },
+        { icon: '💨', name: 'Air Injection', specs: ['Nozzles per FAO table', 'Velocity 100–115 ft/s', 'Air: 1.0–1.5 lb per lb dry wood'] },
+        { icon: '⚙️', name: 'Engine Interface', specs: ['Tar limit: ~50–100 mg/Nm³', 'Derate 20–40 %', 'Cool gas preferred'] }
       ];
-
-      const library = document.getElementById('componentLibrary');
-      library.innerHTML = components.map(c => `
-        <div class="component">
-          <div class="component-title">
-            <div class="component-icon">${c.icon}</div>
-            ${c.name}
-          </div>
-          ${c.specs.map(s => `<div class="component-spec">• ${s}</div>`).join('')}
-        </div>
-      `).join('');
+      document.getElementById('componentLibrary').innerHTML = components.map(c =>
+        `<div class="component"><div class="component-title"><div class="component-icon">${c.icon}</div>${c.name}</div>${c.specs.map(s => `<div class="component-spec">• ${s}</div>`).join('')}</div>`
+      ).join('');
     }
 
-    // ============ EVENT LISTENERS ============
     document.querySelectorAll('input[type="range"], input[type="checkbox"]').forEach(el => {
       el.addEventListener('change', updateDisplay);
       el.addEventListener('input', updateDisplay);
     });
 
-    // ============ INITIALIZE ============
     initCharts();
     initDesignSystem();
     updateDisplay();
