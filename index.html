@@ -3,218 +3,699 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wood Gasifier Design Calculator</title>
+  <title>Wood Gasifier System Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #0f1419;
-      --card: #1a2332;
-      --text: #e7e9ea;
-      --muted: #8b98a5;
-      --accent: #1d9bf0;
-      --green: #00ba7c;
-      --border: #2f3336;
+      --card: #1a1f2e;
+      --text: #e4e4e7;
+      --muted: #a1a1aa;
+      --accent: #fbbf24;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --border: #3f4655;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
       padding: 1.5rem;
-      max-width: 900px;
-      margin: 0 auto;
     }
-    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
-    .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
-    .card {
+
+    .container { max-width: 1600px; margin: 0 auto; }
+
+    h1 { font-size: 2.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); margin-bottom: 2rem; }
+    h2 { font-size: 1.2rem; font-weight: 600; margin: 0 0 1rem 0; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; }
+
+    .section {
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin-bottom: 1.25rem;
-    }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
-    input, select {
-      width: 100%;
-      padding: 0.6rem 0.75rem;
+      border: 2px solid;
       border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-reactor { border-color: var(--green); }
+    .section-reactor h2 { color: var(--green); }
+
+    .section-downstream { border-color: var(--purple); }
+    .section-downstream h2 { color: var(--purple); }
+
+    .section-tar { border-color: var(--orange); }
+    .section-tar h2 { color: var(--orange); }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
       margin-bottom: 1rem;
     }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
-    button {
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
       background: var(--accent);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    button {
+      background: var(--green);
       color: white;
       border: none;
       padding: 0.75rem 1.5rem;
-      border-radius: 9999px;
+      border-radius: 6px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      width: 100%;
+      margin-right: 0.5rem;
     }
+
     button:hover { filter: brightness(1.1); }
-    .result-grid {
+    button.secondary { background: var(--purple); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .metric-card {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid;
+    }
+
+    .metric-card.green { border-left-color: var(--green); }
+    .metric-card.cyan { border-left-color: var(--cyan); }
+    .metric-card.orange { border-left-color: var(--orange); }
+    .metric-card.purple { border-left-color: var(--purple); }
+    .metric-card.red { border-left-color: var(--red); }
+
+    .metric-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; }
+    .metric-unit { font-size: 0.7rem; color: var(--muted); }
+
+    .side-by-side {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
     }
-    @media (max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
-    .metric {
-      background: var(--bg);
+
+    @media (max-width: 1200px) {
+      .side-by-side { grid-template-columns: 1fr; }
+    }
+
+    .chart-container {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 0.75rem;
+      padding: 1.5rem;
+      position: relative;
+      height: 300px;
     }
-    .metric .label { font-size: 0.8rem; color: var(--muted); }
-    .metric .value { font-size: 1.25rem; font-weight: 600; color: var(--green); }
-    .notes { font-size: 0.85rem; color: var(--muted); margin-top: 1rem; }
-    a { color: var(--accent); }
-    footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-align: center; }
+
+    .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 1rem; }
+
+    .warning {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--green);
+      color: #86efac;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .badge-good { background: rgba(16, 185, 129, 0.2); color: #86efac; }
+    .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .badge-alert { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
   </style>
 </head>
 <body>
-  <h1>Wood Gasifier Design Calculator</h1>
-  <p class="subtitle">Home-scale Imbert / downdraft • English units • Based on FAO / SERI hearth-load rules</p>
+  <div class="container">
+    <h1>Wood Gasifier System Simulator</h1>
+    <p class="subtitle">Reactor → Cooler → Tar Trap → Filter | Pine straw fuel | US units | Real-world physics integrated</p>
 
-  <div class="card">
-    <div class="row">
-      <div>
-        <label for="mode">Design from</label>
-        <select id="mode">
-          <option value="wood">Wood feed rate</option>
-          <option value="power">Electric power target</option>
-        </select>
-      </div>
-      <div id="wood-group">
-        <label for="wood">Dry wood feed (lb/h)</label>
-        <input type="number" id="wood" value="8" min="1" max="100" step="0.5">
-      </div>
-      <div id="power-group" style="display:none">
-        <label for="power">Target electric power (kW)</label>
-        <input type="number" id="power" value="3" min="0.5" max="50" step="0.5">
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label for="hearthload">Design hearth load (scf/h·in²)</label>
-        <input type="number" id="hearthload" value="2.45" min="1.0" max="2.95" step="0.05">
-      </div>
-      <div>
-        <label for="gasyield">Gas yield (scf / lb dry wood)</label>
-        <input type="number" id="gasyield" value="37" min="30" max="45" step="1">
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label for="efficiency">Engine + generator efficiency</label>
-        <input type="number" id="efficiency" value="0.22" min="0.15" max="0.30" step="0.01">
-      </div>
-      <div>
-        <label for="imbert">Hearth style</label>
-        <select id="imbert">
-          <option value="true">Imbert (double throat, +8 in)</option>
-          <option value="false">Single throat (+4 in)</option>
-        </select>
+    <!-- REACTOR CONTROLS -->
+    <div class="section section-reactor">
+      <h2>REACTOR DESIGN</h2>
+      <div class="control-grid">
+        <div class="control-group">
+          <label>Diameter (in): <span id="diameterVal">6</span></label>
+          <input type="range" id="diameter" min="4" max="12" value="6" step="0.5">
+        </div>
+        <div class="control-group">
+          <label>Height (in): <span id="heightVal">24</span></label>
+          <input type="range" id="height" min="16" max="36" value="24" step="0.5">
+        </div>
+        <div class="control-group">
+          <label>Fuel Moisture (%): <span id="moistureVal">20</span></label>
+          <input type="range" id="moisture" min="5" max="50" value="20" step="1">
+        </div>
+        <div class="control-group">
+          <label>Feed Rate (lbm/h): <span id="feedVal">5.50</span></label>
+          <input type="range" id="feed" min="1" max="18" value="5.5" step="0.2">
+        </div>
+        <div class="control-group">
+          <label>Airflow (cfm): <span id="airflowVal">100</span></label>
+          <input type="range" id="airflow" min="20" max="200" value="100" step="2">
+        </div>
+        <div class="control-group checkbox-group">
+          <input type="checkbox" id="insulation" checked>
+          <label for="insulation" style="margin-bottom: 0;">Ceramic fiber insulated</label>
+        </div>
       </div>
     </div>
 
-    <button onclick="calculate()">Calculate Geometry</button>
-  </div>
+    <!-- DOWNSTREAM TARGETS -->
+    <div class="section section-downstream">
+      <h2>DOWNSTREAM TARGETS</h2>
+      <div class="control-grid">
+        <div class="control-group">
+          <label>Cooler Exit Target (°F): <span id="exitTempVal">150</span></label>
+          <input type="range" id="exitTemp" min="100" max="300" value="150" step="10">
+        </div>
+        <div class="control-group">
+          <label>Engine Max Tar (oz/scf): <span id="maxTarVal">0.050</span></label>
+          <input type="range" id="maxTar" min="0.02" max="0.2" value="0.05" step="0.01">
+        </div>
+      </div>
+      <div>
+        <button onclick="startSimulation()">Start Simulation</button>
+        <button class="secondary" onclick="resetSimulation()">Reset</button>
+      </div>
+    </div>
 
-  <div class="card" id="results" style="display:none">
-    <h2 style="font-size:1.1rem; margin-bottom:1rem;">Recommended Geometry</h2>
-    <div class="result-grid" id="metrics"></div>
-    <p class="notes">
-      Throat size is the critical restriction that sets hearth load.<br>
-      Reduction zone height should be at least 8 in (typical 12–16 in).<br>
-      Nozzle plane is usually 1.0–1.6 × throat diameter above the throat.
-    </p>
-  </div>
+    <!-- REACTOR OUTPUT & DOWNSTREAM (SIDE BY SIDE) -->
+    <div class="side-by-side">
+      <div class="section section-reactor">
+        <h3>REACTOR OUTPUT (Real-World)</h3>
+        <div class="metrics-grid">
+          <div class="metric-card green">
+            <div class="metric-label">Oxidation Zone Temp</div>
+            <div class="metric-value"><span id="tempF">1472</span></div>
+            <div class="metric-unit">°F</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Efficiency Ratio (ER)</div>
+            <div class="metric-value"><span id="er">0.000</span></div>
+            <div class="metric-unit">—</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Efficiency</div>
+            <div class="metric-value"><span id="eff">0.0</span></div>
+            <div class="metric-unit">%</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">Tar Content</div>
+            <div class="metric-value"><span id="tar">0.050</span></div>
+            <div class="metric-unit">oz/scf</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Syngas Flow</div>
+            <div class="metric-value"><span id="scfm">0.0</span></div>
+            <div class="metric-unit">scfm</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Syngas Energy</div>
+            <div class="metric-value"><span id="energy">0</span></div>
+            <div class="metric-unit">Btu/h</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Gas Exit Temp</div>
+            <div class="metric-value"><span id="exitTemp">960</span></div>
+            <div class="metric-unit">°F</div>
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2 style="font-size:1.1rem; margin-bottom:0.5rem;">Python Kinetic Model</h2>
-    <p class="notes" style="margin-bottom:0.75rem;">
-      Full design + reduction-zone kinetic model (starter version) is available as a Python script.
-    </p>
-    <a href="gasifier_design_model.py" download>Download gasifier_design_model.py</a>
-  </div>
+      <div class="section section-downstream">
+        <h3>DOWNSTREAM COMPONENTS</h3>
+        <div class="metrics-grid">
+          <div class="metric-card green">
+            <div class="metric-label">Cooler Heat Removal</div>
+            <div class="metric-value"><span id="coolerHeat">0</span></div>
+            <div class="metric-unit">Btu/h</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Water Flow Required</div>
+            <div class="metric-value"><span id="waterFlow">0.00</span></div>
+            <div class="metric-unit">gal/min</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Cooler Surface Area</div>
+            <div class="metric-value"><span id="coolerArea">0.0</span></div>
+            <div class="metric-unit">ft²</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">Tar Trap Volume</div>
+            <div class="metric-value"><span id="trapVolume">0</span></div>
+            <div class="metric-unit">gal</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">Tar Per 2h Emptying</div>
+            <div class="metric-value"><span id="tarPerEmpty">0.00</span></div>
+            <div class="metric-unit">gal</div>
+          </div>
+          <div class="metric-card purple">
+            <div class="metric-label">Filter Area</div>
+            <div class="metric-value"><span id="filterArea">0.0</span></div>
+            <div class="metric-unit">ft²</div>
+          </div>
+          <div class="metric-card red">
+            <div class="metric-label">Pressure Drop</div>
+            <div class="metric-value"><span id="pressureDrop">0.00</span></div>
+            <div class="metric-unit">in H₂O</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <footer>
-    Built for practical home-scale gasifier design • jdnitrap/wood-gasifier
-  </footer>
+    <!-- TAR MANAGEMENT -->
+    <div class="section section-tar">
+      <h2 id="tarStatus">TAR MANAGEMENT</h2>
+      <div class="metrics-grid">
+        <div class="metric-card orange">
+          <div class="metric-label">Reactor Tar Output</div>
+          <div class="metric-value"><span id="reactorTar">0.050</span></div>
+          <div class="metric-unit">oz/scf</div>
+        </div>
+        <div class="metric-card orange">
+          <div class="metric-label">After Cooler</div>
+          <div class="metric-value"><span id="afterCoolerTar">0.008</span></div>
+          <div class="metric-unit">oz/scf</div>
+        </div>
+        <div class="metric-card cyan">
+          <div class="metric-label">Engine Max</div>
+          <div class="metric-value"><span id="engineMax">0.050</span></div>
+          <div class="metric-unit">oz/scf</div>
+        </div>
+      </div>
+      <div id="tarWarning"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="side-by-side">
+      <div class="chart-container">
+        <div class="chart-title">OXIDATION ZONE TEMPERATURE</div>
+        <canvas id="tempChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">EFFICIENCY</div>
+        <canvas id="effChart"></canvas>
+      </div>
+    </div>
+
+    <div class="side-by-side">
+      <div class="chart-container">
+        <div class="chart-title">TAR CONTENT</div>
+        <canvas id="tarChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">SYSTEM PERFORMANCE</div>
+        <canvas id="perfChart"></canvas>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const modeSelect = document.getElementById('mode');
-    modeSelect.addEventListener('change', () => {
-      document.getElementById('wood-group').style.display = modeSelect.value === 'wood' ? 'block' : 'none';
-      document.getElementById('power-group').style.display = modeSelect.value === 'power' ? 'block' : 'none';
+    // ============ STATE ============
+    const state = {
+      timeStep: 0,
+      isRunning: false,
+      history: [],
+      charts: {}
+    };
+
+    // ============ PHYSICS CONSTANTS ============
+    const PINE_STRAW_LHV = 6450;
+    const AIR_DENSITY = 0.076;
+    const REAL_WORLD = {
+      char_loss: 0.18,
+      wall_loss: 0.05,
+      cooler_loss: 0.03,
+      tar_multiplier: 3.0,
+      startup_tar: 2.5,
+      startup_duration: 10,
+      ash_interval: 180,
+    };
+
+    // ============ REACTOR CALCULATION ============
+    function calculateReactor() {
+      const diameter = parseFloat(document.getElementById('diameter').value);
+      const height = parseFloat(document.getElementById('height').value);
+      const moisture = parseFloat(document.getElementById('moisture').value);
+      const feed = parseFloat(document.getElementById('feed').value);
+      const airflow = parseFloat(document.getElementById('airflow').value);
+      const insulated = document.getElementById('insulation').checked;
+
+      const diameterFt = diameter / 12;
+      const heightFt = height / 12;
+      const areaSqFt = Math.PI * Math.pow(diameterFt / 2, 2);
+      const volumeFt3 = areaSqFt * heightFt;
+
+      const dryLHV = PINE_STRAW_LHV;
+      const wetLHV = dryLHV * (100 - moisture) / 100;
+      const fuelMass = feed;
+      const airMass = airflow * AIR_DENSITY * 60;
+
+      const er = airMass / (fuelMass * 11.5);
+
+      let tempF = 1472;
+      if (er > 0.2) {
+        const energy = fuelMass * wetLHV * er;
+        const energyDensity = energy / volumeFt3;
+        tempF = 932 + (energyDensity * 0.004);
+        tempF = Math.min(tempF, 2372);
+      }
+
+      const tempC = (tempF - 32) * 5 / 9;
+      let tarContent = 0.05;
+      if (tempC > 482) {
+        tarContent = tarContent * (592 - tempC) / 110;
+      } else if (tempC < 427) {
+        tarContent = 0.15 * ((427 - tempC) / 100 + 1);
+      }
+      tarContent = Math.max(tarContent, 0.005);
+
+      const coFrac = 0.12 + (tempC - 427) / 2760;
+      const h2Frac = 0.08 + er * 0.05;
+      const ch4Frac = Math.max(0.04 - er * 0.02, 0.01);
+      const co2Frac = 0.10 + (0.35 - er) * 0.15;
+      const n2Frac = Math.max(1 - coFrac - h2Frac - ch4Frac - co2Frac, 0);
+
+      const scfh = fuelMass * 92 * (100 - moisture) / 100;
+      const scfm = scfh / 60;
+
+      const energyPerScf = (coFrac * 318 + h2Frac * 325 + ch4Frac * 1010) /
+        (coFrac + h2Frac + ch4Frac + co2Frac + n2Frac);
+      const energyBtuh = scfh * energyPerScf;
+
+      const efficiency = (energyBtuh / (fuelMass * wetLHV)) * 100;
+      const exitTemp = insulated ? tempF * 0.65 : tempF * 0.5;
+
+      const ideal = { tempF, tempC, tarContent, efficiency, scfm, energyBtuh, exitTemp, er };
+
+      let realTar = tarContent;
+      if (!insulated) realTar = tarContent * REAL_WORLD.tar_multiplier;
+
+      const realEnergy = energyBtuh * (1 - REAL_WORLD.char_loss - REAL_WORLD.wall_loss - REAL_WORLD.cooler_loss);
+      const realEff = (realEnergy / (fuelMass * wetLHV)) * 100;
+
+      const real = { tempF, tempC, tarContent: realTar, efficiency: realEff, scfm, energyBtuh: realEnergy, exitTemp, er };
+
+      return { ideal, real };
+    }
+
+    // ============ DOWNSTREAM CALCULATION ============
+    function calculateDownstream(reactor) {
+      const exitTemp = parseFloat(document.getElementById('exitTemp').value);
+      const maxTar = parseFloat(document.getElementById('maxTar').value);
+
+      const scfm = reactor.real.scfm;
+      const energy = reactor.real.energyBtuh;
+      const tarContent = reactor.real.tarContent;
+      const gasExit = reactor.real.exitTemp;
+
+      const gasFlow = scfm * AIR_DENSITY * 60;
+      const cp = 0.28;
+      const tempDrop = gasExit - exitTemp;
+      const heatRemoved = gasFlow * cp * tempDrop;
+      const waterFlow = heatRemoved / (1.0 * 80);
+      const waterGpm = waterFlow / 60 / 8.34;
+      const coolerArea = heatRemoved / 1000 * 1.5;
+
+      const tarMass = (tarContent / 16) * scfm * 60;
+      const tarCondensed = tarMass * 0.85;
+      const tarPerEmpty = tarCondensed * 2 / 7.5;
+      const trapVolume = Math.ceil((scfm * 3) / 7.48 * 1.5);
+
+      let tarAfterCooler = tarContent * 0.15;
+      const needsCracker = tarAfterCooler > maxTar;
+
+      const filterArea = (scfm / 100) * 1.5;
+      const pressureDrop = 0.5 + 0.3 + 0.3;
+
+      return {
+        heatRemoved,
+        waterFlow: waterGpm,
+        coolerArea,
+        tarMass,
+        tarPerEmpty,
+        trapVolume,
+        tarAfterCooler,
+        needsCracker,
+        filterArea,
+        pressureDrop
+      };
+    }
+
+    // ============ UPDATE DISPLAY ============
+    function updateDisplay() {
+      // Update slider labels
+      document.getElementById('diameterVal').textContent = parseFloat(document.getElementById('diameter').value).toFixed(1);
+      document.getElementById('heightVal').textContent = parseFloat(document.getElementById('height').value).toFixed(1);
+      document.getElementById('moistureVal').textContent = parseFloat(document.getElementById('moisture').value).toFixed(0);
+      document.getElementById('feedVal').textContent = parseFloat(document.getElementById('feed').value).toFixed(2);
+      document.getElementById('airflowVal').textContent = parseFloat(document.getElementById('airflow').value).toFixed(0);
+      document.getElementById('exitTempVal').textContent = parseFloat(document.getElementById('exitTemp').value).toFixed(0);
+      document.getElementById('maxTarVal').textContent = (parseFloat(document.getElementById('maxTar').value) / 1000).toFixed(3);
+
+      const reactor = calculateReactor();
+      const downstream = calculateDownstream(reactor);
+
+      // Reactor metrics
+      document.getElementById('tempF').textContent = reactor.real.tempF.toFixed(0);
+      document.getElementById('er').textContent = reactor.real.er.toFixed(3);
+      document.getElementById('eff').textContent = reactor.real.efficiency.toFixed(1);
+      document.getElementById('tar').textContent = reactor.real.tarContent.toFixed(3);
+      document.getElementById('scfm').textContent = reactor.real.scfm.toFixed(1);
+      document.getElementById('energy').textContent = reactor.real.energyBtuh.toFixed(0);
+      document.getElementById('exitTemp').textContent = reactor.real.exitTemp.toFixed(0);
+
+      // Downstream metrics
+      document.getElementById('coolerHeat').textContent = downstream.heatRemoved.toFixed(0);
+      document.getElementById('waterFlow').textContent = downstream.waterFlow.toFixed(2);
+      document.getElementById('coolerArea').textContent = downstream.coolerArea.toFixed(1);
+      document.getElementById('trapVolume').textContent = downstream.trapVolume;
+      document.getElementById('tarPerEmpty').textContent = downstream.tarPerEmpty.toFixed(2);
+      document.getElementById('filterArea').textContent = downstream.filterArea.toFixed(1);
+      document.getElementById('pressureDrop').textContent = downstream.pressureDrop.toFixed(2);
+
+      // Tar management
+      document.getElementById('reactorTar').textContent = reactor.real.tarContent.toFixed(3);
+      document.getElementById('afterCoolerTar').textContent = downstream.tarAfterCooler.toFixed(3);
+      document.getElementById('engineMax').textContent = (parseFloat(document.getElementById('maxTar').value) / 1000).toFixed(3);
+
+      const tarStatus = document.getElementById('tarStatus');
+      const tarWarning = document.getElementById('tarWarning');
+      if (downstream.needsCracker) {
+        tarStatus.textContent = 'TAR MANAGEMENT ⚠️ THERMAL CRACKER NEEDED';
+        tarStatus.style.color = 'var(--red)';
+        tarWarning.innerHTML = `<div class="warning">Tar at ${downstream.tarAfterCooler.toFixed(3)} oz/scf exceeds engine limit. Add thermal cracker (~$300) to reduce tar to ~0.02 oz/scf.</div>`;
+      } else {
+        tarStatus.textContent = 'TAR MANAGEMENT ✓ COOLER SUFFICIENT';
+        tarStatus.style.color = 'var(--orange)';
+        tarWarning.innerHTML = `<div class="success">Tar management sufficient with cooler alone.</div>`;
+      }
+    }
+
+    // ============ CHARTS ============
+    function initCharts() {
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: 'var(--muted)' } } },
+        scales: {
+          x: { ticks: { color: 'var(--muted)' }, grid: { color: 'var(--border)' } },
+          y: { ticks: { color: 'var(--muted)' }, grid: { color: 'var(--border)' } }
+        }
+      };
+
+      state.charts.temp = new Chart(document.getElementById('tempChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Real-World (°F)', data: [], borderColor: '#f97316', tension: 0.1 }] },
+        options: chartOptions
+      });
+
+      state.charts.eff = new Chart(document.getElementById('effChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Efficiency (%)', data: [], borderColor: '#10b981', tension: 0.1 }] },
+        options: chartOptions
+      });
+
+      state.charts.tar = new Chart(document.getElementById('tarChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Real Tar (oz/scf)', data: [], borderColor: '#f59e0b', tension: 0.1 }] },
+        options: chartOptions
+      });
+
+      state.charts.perf = new Chart(document.getElementById('perfChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [
+          { label: 'Cooler Heat (Btu/h)', data: [], borderColor: '#06b6d4', yAxisID: 'y', tension: 0.1 },
+          { label: 'Water Flow (gal/min)', data: [], borderColor: '#8b5cf6', yAxisID: 'y1', tension: 0.1 }
+        ] },
+        options: {
+          ...chartOptions,
+          scales: {
+            y: { ...chartOptions.scales.y, position: 'left' },
+            y1: { ...chartOptions.scales.y, position: 'right', grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+    }
+
+    function updateCharts() {
+      const reactor = calculateReactor();
+      const downstream = calculateDownstream(reactor);
+
+      state.history.push({
+        time: state.timeStep,
+        temp: reactor.real.tempF + (Math.random() - 0.5) * 25,
+        eff: reactor.real.efficiency + (Math.random() - 0.5) * 3,
+        tar: reactor.real.tarContent + (Math.random() - 0.5) * 0.005,
+        heat: downstream.heatRemoved,
+        water: downstream.waterFlow
+      });
+
+      if (state.history.length > 60) state.history.shift();
+
+      const times = state.history.map(h => h.time);
+      state.charts.temp.data.labels = times;
+      state.charts.temp.data.datasets[0].data = state.history.map(h => h.temp);
+      state.charts.temp.update('none');
+
+      state.charts.eff.data.labels = times;
+      state.charts.eff.data.datasets[0].data = state.history.map(h => h.eff);
+      state.charts.eff.update('none');
+
+      state.charts.tar.data.labels = times;
+      state.charts.tar.data.datasets[0].data = state.history.map(h => h.tar);
+      state.charts.tar.update('none');
+
+      state.charts.perf.data.labels = times;
+      state.charts.perf.data.datasets[0].data = state.history.map(h => h.heat);
+      state.charts.perf.data.datasets[1].data = state.history.map(h => h.water);
+      state.charts.perf.update('none');
+    }
+
+    // ============ SIMULATION ============
+    function startSimulation() {
+      state.isRunning = !state.isRunning;
+      if (state.isRunning) {
+        state.simInterval = setInterval(() => {
+          state.timeStep++;
+          updateDisplay();
+          updateCharts();
+        }, 500);
+      } else {
+        clearInterval(state.simInterval);
+      }
+    }
+
+    function resetSimulation() {
+      state.isRunning = false;
+      clearInterval(state.simInterval);
+      state.timeStep = 0;
+      state.history = [];
+      state.charts.temp.data.labels = [];
+      state.charts.temp.data.datasets[0].data = [];
+      state.charts.eff.data.labels = [];
+      state.charts.eff.data.datasets[0].data = [];
+      state.charts.tar.data.labels = [];
+      state.charts.tar.data.datasets[0].data = [];
+      state.charts.perf.data.labels = [];
+      state.charts.perf.data.datasets[0].data = [];
+      state.charts.perf.data.datasets[1].data = [];
+      Object.values(state.charts).forEach(c => c.update());
+      updateDisplay();
+    }
+
+    // ============ EVENT LISTENERS ============
+    document.querySelectorAll('input[type="range"], input[type="checkbox"]').forEach(el => {
+      el.addEventListener('change', updateDisplay);
+      el.addEventListener('input', updateDisplay);
     });
 
-    function suggestNozzles(throat) {
-      const table = [
-        [2.76, 0.41, 3], [3.15, 0.35, 5], [3.54, 0.39, 5], [3.94, 0.43, 5],
-        [4.72, 0.50, 5], [5.12, 0.53, 5], [5.91, 0.59, 5], [6.69, 0.56, 7],
-        [7.48, 0.63, 7], [8.66, 0.71, 7], [10.63, 0.87, 7], [11.81, 0.94, 7]
-      ];
-      let closest = table[0];
-      let minDiff = Math.abs(table[0][0] - throat);
-      for (const row of table) {
-        const d = Math.abs(row[0] - throat);
-        if (d < minDiff) { minDiff = d; closest = row; }
-      }
-      return { dia: closest[1], num: closest[2], match: closest[0] };
-    }
-
-    function calculate() {
-      const mode = document.getElementById('mode').value;
-      const hearthLoad = parseFloat(document.getElementById('hearthload').value);
-      const gasYield = parseFloat(document.getElementById('gasyield').value);
-      const eff = parseFloat(document.getElementById('efficiency').value);
-      const imbert = document.getElementById('imbert').value === 'true';
-
-      let wood, gasFlow;
-      if (mode === 'wood') {
-        wood = parseFloat(document.getElementById('wood').value);
-        gasFlow = wood * gasYield;
-      } else {
-        const kW = parseFloat(document.getElementById('power').value);
-        // 1 kW = 3412 BTU/h, assume ~140 BTU/scf LHV
-        gasFlow = (kW * 3412) / (140 * eff);
-        wood = gasFlow / gasYield;
-      }
-
-      const throatArea = gasFlow / hearthLoad;
-      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
-      const hearthDia = throatDia + (imbert ? 8 : 4);
-      const nozzleHeight = Math.max(4, 1.2 * throatDia);
-      const nozzles = suggestNozzles(throatDia);
-
-      const metrics = [
-        { label: 'Dry wood feed', value: wood.toFixed(1) + ' lb/h' },
-        { label: 'Producer gas flow', value: Math.round(gasFlow) + ' scf/h' },
-        { label: 'Throat diameter', value: throatDia.toFixed(2) + ' in' },
-        { label: 'Throat area', value: throatArea.toFixed(1) + ' in²' },
-        { label: 'Hearth diameter (at nozzles)', value: hearthDia.toFixed(2) + ' in' },
-        { label: 'Nozzle plane height', value: nozzleHeight.toFixed(1) + ' in above throat' },
-        { label: 'Suggested nozzles', value: nozzles.num + ' × ' + nozzles.dia.toFixed(2) + ' in' },
-        { label: 'Closest FAO match', value: '~' + nozzles.match.toFixed(2) + ' in throat' },
-      ];
-
-      const container = document.getElementById('metrics');
-      container.innerHTML = metrics.map(m =>
-        `<div class="metric"><div class="label">${m.label}</div><div class="value">${m.value}</div></div>`
-      ).join('');
-      document.getElementById('results').style.display = 'block';
-    }
-
-    // Run once on load
-    calculate();
+    // ============ INITIALIZE ============
+    initCharts();
+    updateDisplay();
   </script>
 </body>
 </html>
