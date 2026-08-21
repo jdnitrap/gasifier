@@ -1,0 +1,18 @@
+{
+  "name": "wood-gasifier",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Wood gasifier simulator and educational resource",
+  "homepage": "https://jdnitrap.github.io/wood-gasifier",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["gasifier", "wood-gas", "renewable-energy", "simulator"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
