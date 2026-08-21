@@ -1,17 +1,19 @@
-# Unified Gasifier Simulator - GitHub Pages Setup
+# Unified Gasifier Simulator - GitHub Pages Deployment
 
-This is a React-based gasifier simulator with ideal and realistic performance modes. It's ready to deploy to GitHub Pages for testing before publishing to homegasifier.com.
+React-based educational gasifier simulator with ideal and realistic performance modes, running on **GitHub Pages**.
 
-## Quick Start
+## ✅ Live Demo
 
-### 1. Create GitHub Repository
+**https://jdnitrap.github.io/wood-gasifier/**
+
+---
+
+## Quick Start (Local Development)
+
+### 1. Clone or Download
 ```bash
-git init
-git add .
-git commit -m "Initial commit: unified gasifier simulator"
-git branch -M main
-git remote add origin https://github.com/[YOUR_USERNAME]/gasifier-simulator.git
-git push -u origin main
+git clone https://github.com/jdnitrap/wood-gasifier.git
+cd wood-gasifier
 ```
 
 ### 2. Install Dependencies
@@ -19,47 +21,37 @@ git push -u origin main
 npm install
 ```
 
-### 3. Local Development
+### 3. Start Dev Server
 ```bash
 npm run dev
 ```
-Visit `http://localhost:5173` (or the URL shown in terminal)
+Open `http://localhost:5173/wood-gasifier/` in your browser
 
-### 4. Build for Production
+### 4. Make Changes
+Edit `unified-gasifier-simulator.jsx` and changes appear instantly
+
+### 5. Build for Production
 ```bash
 npm run build
 ```
 Creates optimized files in `dist/` folder
-
-### 5. Deploy to GitHub Pages
-```bash
-npm run deploy
-```
-
-This automatically pushes the `dist` folder to the `gh-pages` branch.
-
-### 6. Enable GitHub Pages
-1. Go to your repo settings: `https://github.com/[YOUR_USERNAME]/gasifier-simulator/settings`
-2. Scroll to "Pages" section
-3. Select "Deploy from a branch"
-4. Choose `gh-pages` branch, `/root` folder
-5. Save
-
-Your simulator will be live at: `https://[YOUR_USERNAME].github.io/gasifier-simulator/`
 
 ---
 
 ## Project Structure
 
 ```
-gasifier-simulator/
-├── unified-gasifier-simulator.jsx  # Main React component
-├── main.jsx                         # React entry point
-├── index.html                       # HTML template
-├── package.json                     # Dependencies & scripts
-├── vite.config.js                   # Build configuration
-├── .gitignore                       # Git exclusions
-└── dist/                            # Build output (generated)
+wood-gasifier/
+├── unified-gasifier-simulator.jsx   # Main React component (100% of logic)
+├── main.jsx                          # React entry point
+├── index.html                        # HTML template
+├── vite.config.js                    # Build config (base: '/wood-gasifier/')
+├── package.json                      # Dependencies & scripts
+├── .github/workflows/deploy.yml      # Auto-deploy on push
+├── .gitignore                        # Git exclusions
+├── gasifier_design_model.py          # Python validation model
+├── skill/                            # Design knowledge base
+└── dist/                             # Build output (auto-generated)
 ```
 
 ---
@@ -160,71 +152,119 @@ Clamped: 600–1800°F
 
 ---
 
+---
+
+## Automatic Deployment (GitHub Actions)
+
+**The simulator auto-deploys to GitHub Pages on every push to `main`.**
+
+1. Edit files locally
+2. Commit changes: `git add . && git commit -m "your message"`
+3. Push to main: `git push origin main`
+4. Workflow runs automatically → builds & deploys
+5. Live at: **https://jdnitrap.github.io/wood-gasifier/** (1-2 min delay)
+
+**No manual deploy commands needed.** The `.github/workflows/deploy.yml` handles everything.
+
+---
+
 ## Troubleshooting
 
 ### `npm install` fails
-- Ensure Node.js 18+ is installed: `node --version`
-- Try clearing cache: `npm cache clean --force && npm install`
+```bash
+node --version  # Must be 18+
+npm cache clean --force
+npm install
+```
 
 ### `npm run dev` shows "port 5173 in use"
-- Kill the process: `lsof -i :5173 | kill -9 <PID>`
-- Or use a different port: `npm run dev -- --port 3000`
+```bash
+# Kill the process:
+lsof -i :5173 | grep node | awk '{print $2}' | xargs kill -9
 
-### Deploy fails
-- Ensure `gh-pages` is installed: `npm install gh-pages --save-dev`
-- Check GitHub token permissions (must have repo write access)
-- Verify `homepage` in package.json matches your repo URL
+# Or use different port:
+npm run dev -- --port 3000
+```
 
-### Simulator not showing on GitHub Pages
-- Wait 1–2 minutes after deploy
+### Website not updating after push
+- GitHub Actions takes 1-2 minutes to build and deploy
+- Check Actions tab in GitHub repo for build logs
 - Clear browser cache (Ctrl+Shift+Del or Cmd+Shift+Del)
-- Check that GitHub Pages is enabled for `gh-pages` branch
+- Verify `.github/workflows/deploy.yml` exists and is valid
+
+### GitHub Actions failing
+1. Go to: `https://github.com/jdnitrap/wood-gasifier/actions`
+2. Click the failed workflow
+3. Check "build" and "deploy" logs for errors
+4. Common fixes:
+   - Ensure `vite.config.js` has `base: '/wood-gasifier/'`
+   - Check `package.json` has all dependencies
+   - Verify Node version in workflow is 18+
 
 ---
 
 ## Customization
 
-### Change GitHub Pages URL
-In `package.json`, update `homepage`:
-```json
-"homepage": "https://your-username.github.io/your-repo-name/"
+### Change Calculation Logic
+Edit `calculatePerformance()` in `unified-gasifier-simulator.jsx`:
+- Modify constants (STOICH_AIR, FUEL_LHV, GAS_YIELD, etc.)
+- Change formulas for CGE, temperature, tar, etc.
+- Add new output fields to the return object
+
+### Modify UI / Styling
+Styles are embedded in JSX. CSS variables at top of component:
+```jsx
+const styles = {
+  --bg: '#f8f9fa',
+  --card: '#ffffff',
+  --text: '#333333',
+  --accent: '#0066cc',
+  // ... more
+};
 ```
 
-And in `vite.config.js`, update `base`:
-```javascript
-base: '/your-repo-name/',
-```
-
-### Add New Outputs
-Edit `calculatePerformance()` function in `unified-gasifier-simulator.jsx` and add to the return object.
-
-### Modify Calculation Logic
-All calculations are in the `calculatePerformance()` function. Change constants, formulas, or loss models as needed.
-
-### Styling
-Styles are embedded in the JSX within `<style>` tags. Modify CSS variables (--bg, --card, --accent, etc.) to change theme.
+### Add New Inputs
+1. Add `const [newInput, setNewInput] = useState(defaultValue);`
+2. Add input control in JSX (slider, number field, etc.)
+3. Use `newInput` in `calculatePerformance()` calculations
+4. Add output to results display
 
 ---
 
-## Next Steps
+## Testing Workflow
 
-1. **Test locally**: `npm run dev`
-2. **Push to GitHub**: `git push origin main`
-3. **Build & deploy**: `npm run build && npm run deploy`
-4. **Visit your site**: `https://[USERNAME].github.io/gasifier-simulator/`
-5. **Test thoroughly** before publishing to homegasifier.com
-6. **Document any bugs** found during testing
-7. **Iterate** on calculation models as real-world validation data arrives
+**Local Development:**
+```bash
+npm run dev          # Start dev server
+# Edit simulator.jsx
+# Changes auto-reload in browser
+# Test calculations and UI
+```
+
+**Before Pushing:**
+```bash
+npm run build        # Verify production build works
+npm run preview      # Test production build locally
+```
+
+**After Pushing:**
+```bash
+# Wait 1-2 minutes
+# Visit: https://jdnitrap.github.io/wood-gasifier/
+# Test all inputs and calculations
+```
 
 ---
 
-## Support
+## References
 
-For issues with React, Vite, or GitHub Pages, see:
-- Vite docs: https://vitejs.dev/
-- React docs: https://react.dev/
+**Technical:**
+- Vite: https://vitejs.dev/
+- React: https://react.dev/
 - GitHub Pages: https://docs.github.com/en/pages
+- GitHub Actions: https://docs.github.com/en/actions
 
-For gasifier-specific questions, reference:
+**Gasifier Design:**
 - Chandra & Payne (1986): "Turndown Ratio of a Gasifier-Combustor Predicted by a Simulation Model"
-- homegasifier.com documentation
+- FAO *Wood Gas as Engine Fuel* handbook
+- SERI/NREL downdraft gasifier manual

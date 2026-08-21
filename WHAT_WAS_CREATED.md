@@ -1,7 +1,9 @@
 # Unified Gasifier Simulator — What Was Created
 
 ## Overview
-A React-based educational gasifier simulator combining ideal and realistic performance modes, ready to deploy on GitHub Pages for testing before publishing to homegasifier.com.
+A React-based educational gasifier simulator combining ideal and realistic performance modes, deployed live on GitHub Pages.
+
+**Live:** https://jdnitrap.github.io/wood-gasifier/
 
 ## Files Created
 
@@ -36,9 +38,9 @@ The entire simulator in one React component.
 
 ### 2. **package.json**
 React project configuration.
-- Lists dependencies: React 18.2, Three.js, Vite
-- Defines npm scripts: `dev`, `build`, `deploy`
-- Sets homepage for GitHub Pages: `https://[USERNAME].github.io/gasifier-simulator/`
+- Lists dependencies: React 18.2, React DOM, Three.js, Vite
+- Defines npm scripts: `dev` (local dev), `build` (production build), `preview` (test build)
+- Sets homepage for GitHub Pages: `https://jdnitrap.github.io/wood-gasifier/`
 
 ### 3. **vite.config.js**
 Build configuration.
@@ -62,13 +64,16 @@ Standard Node/Vite exclusions.
 - IDE files (`.vscode`, `.idea`)
 - OS junk (`.DS_Store`)
 
-### 7. **deploy.yml**
-GitHub Actions workflow for automatic deployment.
-- Runs on every push to `main` branch
-- Installs dependencies
-- Builds React app
-- Deploys to `gh-pages` branch
-- Enables one-command deployment: just push to main
+### 7. **.github/workflows/deploy.yml**
+GitHub Actions workflow for automatic deployment to GitHub Pages.
+- **Trigger:** Every push to `main` branch
+- **Steps:**
+  1. Checkout code
+  2. Setup Node.js 18
+  3. Install npm dependencies
+  4. Build React app with Vite
+  5. Deploy `dist/` folder to GitHub Pages
+- **Result:** Live site updates automatically (1-2 min after push)
 
 ### 8. **SETUP_GUIDE.md**
 Step-by-step setup and deployment instructions.

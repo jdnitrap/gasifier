@@ -1,18 +1,19 @@
-# Wood Gasifier Design Tools
+# Wood Gasifier Simulator
 
-Home-scale **Imbert / downdraft** wood gasifier design calculator, kinetic model, and full design skill.
+Interactive **Imbert-style downdraft** gasifier performance calculator with ideal and realistic modes.
 
-All calculations use **English (US customary) units**.
+**All units: US customary (lbm, ft, cfm, °F, Btu/hr)**
 
-## Live Calculator
-
-Open the static page:
+## 🚀 Live Simulator
 
 **https://jdnitrap.github.io/wood-gasifier/**
 
-(or open `index.html` directly after enabling GitHub Pages)
-
-The page lets you size throat diameter, hearth, nozzles, etc. from either wood feed rate or target electric power using classic FAO / SERI hearth-load rules.
+### Features
+- **Ideal Performance Mode**: Pure energy balance (theoretical max)
+- **Realistic Performance Mode**: Includes downstream losses (cooler, filter, tar cracker)
+- **Inputs**: Fuel type, feed rate, moisture, reactor geometry, equivalence ratio, downstream equipment
+- **Outputs**: Mass flows, temperatures, efficiency (CGE), syngas composition, tar content, pressure drop
+- **3D Visualization**: Optional Three.js reactor diagram
 
 ## Python Model
 
