@@ -268,9 +268,9 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('simulator')">Simulator</button>
-      <button class="tab-button" onclick="switchTab('model')">3D Model</button>
-      <button class="tab-button" onclick="switchTab('design')">Design System</button>
+      <button class="tab-button active" onclick="switchTab('simulator', event)">Simulator</button>
+      <button class="tab-button" onclick="switchTab('model', event)">3D Model</button>
+      <button class="tab-button" onclick="switchTab('design', event)">Design System</button>
     </div>
 
     <div id="simulator" class="tab-content active">
@@ -1091,11 +1091,11 @@
       updateDisplay();
     }
 
-    function switchTab(tabName) {
+    function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
       document.getElementById(tabName).classList.add('active');
-      event.target.classList.add('active');
+      evt.target.classList.add('active');
       if (tabName === 'model' && !state.threeScene) {
         setTimeout(initThreeScene, 80);
       } else if (tabName === 'model') {
