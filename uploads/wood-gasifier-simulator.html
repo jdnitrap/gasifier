@@ -1,0 +1,1141 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood Gasifier System Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a1f2e;
+      --text: #e4e4e7;
+      --muted: #a1a1aa;
+      --accent: #fbbf24;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --border: #3f4655;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+    .container { max-width: 1800px; margin: 0 auto; }
+    h1 { font-size: 2.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); margin-bottom: 2rem; }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    h2 { font-size: 1.2rem; font-weight: 600; margin: 0 0 1rem 0; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem 0; }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-button:hover { color: var(--text); }
+    .tab-button.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .section {
+      background: var(--card);
+      border: 2px solid;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .section-reactor { border-color: var(--green); }
+    .section-reactor h2 { color: var(--green); }
+    .section-downstream { border-color: var(--purple); }
+    .section-downstream h2 { color: var(--purple); }
+    .section-tar { border-color: var(--orange); }
+    .section-tar h2 { color: var(--orange); }
+    .section-idea { border-color: var(--cyan); }
+    .section-idea h2 { color: var(--cyan); }
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .control-group { display: flex; flex-direction: column; }
+    label { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .checkbox-group { display: flex; align-items: center; gap: 0.5rem; }
+    input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+    button {
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+    button:hover { filter: brightness(1.1); }
+    button.secondary { background: var(--purple); }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .metric-card {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid;
+    }
+    .metric-card.green { border-left-color: var(--green); }
+    .metric-card.cyan { border-left-color: var(--cyan); }
+    .metric-card.orange { border-left-color: var(--orange); }
+    .metric-card.purple { border-left-color: var(--purple); }
+    .metric-card.red { border-left-color: var(--red); }
+    .metric-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; }
+    .metric-unit { font-size: 0.7rem; color: var(--muted); }
+    .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 1200px) { .side-by-side { grid-template-columns: 1fr; } }
+    .chart-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      position: relative;
+      height: 300px;
+    }
+    .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 1rem; }
+    #threeDContainer {
+      width: 100%;
+      height: 620px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .three-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    .component-library {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .component {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+    }
+    .component-title {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .component-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+    .component-spec { font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0; }
+    .warning {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--green);
+      color: #86efac;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .flow-diagram {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      margin: 2rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .flow-box {
+      background: var(--card);
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      min-width: 120px;
+    }
+    .flow-arrow { font-size: 2rem; color: var(--cyan); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-bar">
+      <div>
+        <h1>Wood Gasifier System Simulator</h1>
+        <p class="subtitle">English units | FAO / SERI consistent | Enhanced 3D (Option 1) | Design rules from skill</p>
+      </div>
+      <button onclick="downloadSimulator()" style="height: fit-content; background: var(--orange); padding: 0.75rem 1.5rem; font-size: 0.9rem; white-space: nowrap;">
+        📥 Download
+      </button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('simulator')">Simulator</button>
+      <button class="tab-button" onclick="switchTab('model')">3D Model</button>
+      <button class="tab-button" onclick="switchTab('design')">Design System</button>
+    </div>
+
+    <div id="simulator" class="tab-content active">
+      <div class="section section-reactor">
+        <h2>REACTOR DESIGN</h2>
+        <div class="control-grid">
+          <div class="control-group">
+            <label>Diameter (in): <span id="diameterVal">6.0</span></label>
+            <input type="range" id="diameter" min="4" max="12" value="6" step="0.5">
+          </div>
+          <div class="control-group">
+            <label>Height (in): <span id="heightVal">24.0</span></label>
+            <input type="range" id="height" min="16" max="36" value="24" step="0.5">
+          </div>
+          <div class="control-group">
+            <label>Fuel Moisture (% wet basis): <span id="moistureVal">15</span></label>
+            <input type="range" id="moisture" min="5" max="35" value="15" step="1">
+          </div>
+          <div class="control-group">
+            <label>Dry Feed Rate (lb/h): <span id="feedVal">6.0</span></label>
+            <input type="range" id="feed" min="1" max="20" value="6" step="0.2">
+          </div>
+          <div class="control-group">
+            <label>Airflow (cfm): <span id="airflowVal">12.0</span></label>
+            <input type="range" id="airflow" min="2" max="40" value="12" step="0.5">
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="insulation" checked="">
+            <label for="insulation" style="margin-bottom: 0;">Ceramic fiber insulated</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section section-downstream">
+        <h2>DOWNSTREAM TARGETS &amp; SIMULATION</h2>
+        <div class="control-grid">
+          <div class="control-group">
+            <label>Cooler Exit Target (°F): <span id="exitTempVal">150</span></label>
+            <input type="range" id="exitTemp" min="100" max="250" value="150" step="10">
+          </div>
+          <div class="control-group">
+            <label>Engine Max Tar (mg/Nm³): <span id="maxTarVal">100</span></label>
+            <input type="range" id="maxTar" min="20" max="300" value="100" step="10">
+          </div>
+        </div>
+        <div>
+          <button onclick="startSimulation()">Start Simulation</button>
+          <button class="secondary" onclick="resetSimulation()">Reset</button>
+        </div>
+      </div>
+
+      <div class="section section-idea">
+        <h2>SYSTEM FLOW</h2>
+        <div class="flow-diagram">
+          <div class="flow-box">📦<br>Fuel Hopper</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">🔥<br>Gasifier<br>Reactor</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">❄️<br>Cooler</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">🌊<br>Tar Trap</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">🔧<br>Filter</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">⚙️<br>Engine</div>
+        </div>
+      </div>
+
+      <div class="side-by-side">
+        <div class="section section-reactor">
+          <h3>REACTOR OUTPUT</h3>
+          <div class="metrics-grid">
+            <div class="metric-card green">
+              <div class="metric-label">Oxidation Zone Temp</div>
+              <div class="metric-value"><span id="tempF">2100</span></div>
+              <div class="metric-unit">°F</div>
+            </div>
+            <div class="metric-card green">
+              <div class="metric-label">Equivalence Ratio (ER)</div>
+              <div class="metric-value"><span id="er">1.471</span></div>
+              <div class="metric-unit">—</div>
+            </div>
+            <div class="metric-card green">
+              <div class="metric-label">Cold Gas Efficiency</div>
+              <div class="metric-value"><span id="eff">82.7</span></div>
+              <div class="metric-unit">%</div>
+            </div>
+            <div class="metric-card orange">
+              <div class="metric-label">Tar Content</div>
+              <div class="metric-value"><span id="tar">144</span></div>
+              <div class="metric-unit">mg/Nm³</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-label">Syngas Flow</div>
+              <div class="metric-value"><span id="scfm">3.70</span></div>
+              <div class="metric-unit">scfm</div>
+            </div>
+            <div class="metric-card green">
+              <div class="metric-label">Syngas Energy</div>
+              <div class="metric-value"><span id="energy">39702</span></div>
+              <div class="metric-unit">Btu/h</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-label">Gas Exit Temp</div>
+              <div class="metric-value"><span id="gasExitTemp">1155</span></div>
+              <div class="metric-unit">°F</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-label">Hearth Load</div>
+              <div class="metric-value"><span id="hearthLoad">14.28</span></div>
+              <div class="metric-unit">scf/h·in²</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section section-downstream">
+          <h3>DOWNSTREAM COMPONENTS</h3>
+          <div class="metrics-grid">
+            <div class="metric-card green">
+              <div class="metric-label">Cooler Heat Removal</div>
+              <div class="metric-value"><span id="coolerHeat">4748</span></div>
+              <div class="metric-unit">Btu/h</div>
+            </div>
+            <div class="metric-card cyan">
+              <div class="metric-label">Water Flow Required</div>
+              <div class="metric-value"><span id="waterFlow">0.12</span></div>
+              <div class="metric-unit">gal/min</div>
+            </div>
+            <div class="metric-card green">
+              <div class="metric-label">Cooler Surface Area</div>
+              <div class="metric-value"><span id="coolerArea">4.0</span></div>
+              <div class="metric-unit">ft²</div>
+            </div>
+            <div class="metric-card orange">
+              <div class="metric-label">Tar Trap Volume</div>
+              <div class="metric-value"><span id="trapVolume">1</span></div>
+              <div class="metric-unit">gal</div>
+            </div>
+            <div class="metric-card orange">
+              <div class="metric-label">Tar Per 2h Emptying</div>
+              <div class="metric-value"><span id="tarPerEmpty">0.001</span></div>
+              <div class="metric-unit">gal</div>
+            </div>
+            <div class="metric-card purple">
+              <div class="metric-label">Filter Area</div>
+              <div class="metric-value"><span id="filterArea">0.06</span></div>
+              <div class="metric-unit">ft²</div>
+            </div>
+            <div class="metric-card red">
+              <div class="metric-label">Pressure Drop</div>
+              <div class="metric-value"><span id="pressureDrop">0.95</span></div>
+              <div class="metric-unit">in H₂O</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section section-tar">
+        <h2 id="tarStatus" style="color: var(--green);">TAR MANAGEMENT ✓ WITHIN LIMIT</h2>
+        <div class="metrics-grid">
+          <div class="metric-card orange">
+            <div class="metric-label">Reactor Tar Output</div>
+            <div class="metric-value"><span id="reactorTar">144</span></div>
+            <div class="metric-unit">mg/Nm³</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">After Cooler</div>
+            <div class="metric-value"><span id="afterCoolerTar">26</span></div>
+            <div class="metric-unit">mg/Nm³</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Engine Max</div>
+            <div class="metric-value"><span id="engineMax">100</span></div>
+            <div class="metric-unit">mg/Nm³</div>
+          </div>
+        </div>
+        <div id="tarWarning"><div class="success">Tar after cooler is within the selected engine limit.</div></div>
+      </div>
+
+      <div class="side-by-side">
+        <div class="chart-container">
+          <div class="chart-title">OXIDATION ZONE TEMPERATURE</div>
+          <canvas id="tempChart" style="display: block; box-sizing: border-box; height: 250.5px; width: 300px;" width="782" height="653"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">EFFICIENCY</div>
+          <canvas id="effChart" style="display: block; box-sizing: border-box; height: 250.5px; width: 300px;" width="782" height="653"></canvas>
+        </div>
+      </div>
+      <div class="side-by-side">
+        <div class="chart-container">
+          <div class="chart-title">TAR CONTENT (mg/Nm³)</div>
+          <canvas id="tarChart" style="display: block; box-sizing: border-box; height: 250.5px; width: 300px;" width="782" height="653"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">SYSTEM PERFORMANCE</div>
+          <canvas id="perfChart" style="display: block; box-sizing: border-box; height: 250.5px; width: 300px;" width="782" height="653"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="model" class="tab-content">
+      <div class="section section-reactor">
+        <h2>3D GASIFIER MODEL (Option 1)</h2>
+        <p style="margin-bottom: 1rem; color: var(--muted);">Cutaway view of zones, nozzles, hearth constriction, and downstream train. Drag to rotate, scroll to zoom.</p>
+
+        <div class="three-controls">
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showCutaway" checked="" onchange="updateThreeScene()">
+            <label for="showCutaway" style="margin-bottom: 0;">Cutaway (show zones)</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showZones" checked="" onchange="updateThreeScene()">
+            <label for="showZones" style="margin-bottom: 0;">Color zones</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showNozzles" checked="" onchange="updateThreeScene()">
+            <label for="showNozzles" style="margin-bottom: 0;">Nozzles</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showFlow" checked="" onchange="updateThreeScene()">
+            <label for="showFlow" style="margin-bottom: 0;">Flow arrows</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showWire" onchange="updateThreeScene()">
+            <label for="showWire" style="margin-bottom: 0;">Wireframe</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showCooler3d" checked="" onchange="updateThreeScene()">
+            <label for="showCooler3d" style="margin-bottom: 0;">Cooler</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showTrap3d" checked="" onchange="updateThreeScene()">
+            <label for="showTrap3d" style="margin-bottom: 0;">Tar Trap</label>
+          </div>
+          <div class="control-group checkbox-group">
+            <input type="checkbox" id="showFilter3d" checked="" onchange="updateThreeScene()">
+            <label for="showFilter3d" style="margin-bottom: 0;">Filter</label>
+          </div>
+        </div>
+
+        <div id="threeDContainer"></div>
+
+        <div class="legend">
+          <div class="legend-item"><div class="legend-swatch" style="background:#60a5fa"></div> Drying</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div> Pyrolysis</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#ef4444"></div> Oxidation</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div> Reduction</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#a78bfa"></div> Nozzles / Air</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="design" class="tab-content">
+      <div class="section section-idea">
+        <h2>COMPONENT DESIGN SYSTEM</h2>
+        <p style="margin-bottom: 2rem; color: var(--muted);">Physical components and design rules from FAO / SERI / skill</p>
+        <div class="component-library" id="componentLibrary"><div class="component"><div class="component-title"><div class="component-icon">🔥</div>Gasifier Reactor</div><div class="component-spec">• Diameter: 4–12 in</div><div class="component-spec">• Height: 16–36 in</div><div class="component-spec">• Material: Steel + insulation</div><div class="component-spec">• Throat / hearth load critical</div></div><div class="component"><div class="component-title"><div class="component-icon">🌊</div>Cooler Unit</div><div class="component-spec">• Type: Counter-flow</div><div class="component-spec">• Target exit: 100–150 °F</div><div class="component-spec">• Water flow calculated</div><div class="component-spec">• Material: Copper / stainless</div></div><div class="component"><div class="component-title"><div class="component-icon">🛢️</div>Tar Trap</div><div class="component-spec">• Volume sized to flow</div><div class="component-spec">• Empty periodically</div><div class="component-spec">• Material: Steel</div></div><div class="component"><div class="component-title"><div class="component-icon">🔧</div>Filter Unit</div><div class="component-spec">• Packed bed or fabric</div><div class="component-spec">• Area ~0.01–0.02 ft²/cfm</div><div class="component-spec">• Media: sawdust / charcoal</div></div><div class="component"><div class="component-title"><div class="component-icon">💨</div>Air Injection</div><div class="component-spec">• Nozzles per FAO table</div><div class="component-spec">• Velocity 100–115 ft/s</div><div class="component-spec">• Air: 1.0–1.5 lb per lb dry wood</div></div><div class="component"><div class="component-title"><div class="component-icon">⚙️</div>Engine Interface</div><div class="component-spec">• Tar limit: ~50–100 mg/Nm³</div><div class="component-spec">• Derate 20–40 %</div><div class="component-spec">• Cool gas preferred</div></div></div>
+      </div>
+      <div class="section section-reactor">
+        <h2>DESIGN RULES REFERENCE (from skill)</h2>
+        <div class="metrics-grid">
+          <div class="metric-card green">
+            <div class="metric-label">Hearth Load Range</div>
+            <div class="metric-value">1.0–2.95</div>
+            <div class="metric-unit">scf/h per in²</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Gas Yield</div>
+            <div class="metric-value">35–40</div>
+            <div class="metric-unit">scf/lb dry wood</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">Producer Gas LHV</div>
+            <div class="metric-value">120–160</div>
+            <div class="metric-unit">Btu/scf</div>
+          </div>
+          <div class="metric-card purple">
+            <div class="metric-label">Nozzle Air Velocity</div>
+            <div class="metric-value">100–115</div>
+            <div class="metric-unit">ft/s</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Reduction Zone Min</div>
+            <div class="metric-value">8</div>
+            <div class="metric-unit">inches</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-label">Fuel Moisture Max</div>
+            <div class="metric-value">15–20</div>
+            <div class="metric-unit">% wet basis</div>
+          </div>
+          <div class="metric-card orange">
+            <div class="metric-label">Equivalence Ratio</div>
+            <div class="metric-value">0.25–0.35</div>
+            <div class="metric-unit">—</div>
+          </div>
+          <div class="metric-card purple">
+            <div class="metric-label">Engine Derate</div>
+            <div class="metric-value">20–40</div>
+            <div class="metric-unit">%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      timeStep: 0,
+      isRunning: false,
+      history: [],
+      charts: {},
+      threeScene: null,
+      threeRenderer: null,
+      threeCamera: null,
+      threeObjects: {},
+      particleSystem: null,
+      animId: null
+    };
+
+    // ===== PHYSICS CONSTANTS (skill / FAO consistent) =====
+    const WOOD_LHV_DRY = 8000;
+    const AIR_DENSITY = 0.076;
+    const GAS_YIELD = 37;
+    const STOICH_AIR = 6.2;
+
+    function calculateReactor() {
+      const diameter = parseFloat(document.getElementById('diameter').value);
+      const height = parseFloat(document.getElementById('height').value);
+      const moisture = parseFloat(document.getElementById('moisture').value);
+      const feedDry = parseFloat(document.getElementById('feed').value);
+      const airflowCfm = parseFloat(document.getElementById('airflow').value);
+      const insulated = document.getElementById('insulation').checked;
+
+      const areaIn2 = Math.PI * Math.pow(diameter / 2, 2);
+      const throatAreaIn2 = areaIn2 * 0.55; // approximate constriction
+
+      const airMass = airflowCfm * AIR_DENSITY * 60;
+      const er = airMass / (feedDry * STOICH_AIR);
+      const scfh = feedDry * GAS_YIELD;
+      const scfm = scfh / 60;
+      const hearthLoad = scfh / throatAreaIn2;
+
+      let tempF = 1100 + er * 1800 + (insulated ? 150 : 0);
+      tempF = Math.max(900, Math.min(tempF, 2100));
+
+      let tarMg = 400;
+      if (tempF > 1600) tarMg = 80 + (2100 - tempF) * 0.15;
+      else if (tempF > 1400) tarMg = 150 + (1600 - tempF) * 0.8;
+      else tarMg = 400 + (1400 - tempF) * 1.5;
+      if (er < 0.22 || er > 0.40) tarMg *= 1.8;
+      if (!insulated) tarMg *= 1.6;
+      tarMg = Math.max(30, Math.min(tarMg, 2000));
+
+      const gasLHV = 130 + (er - 0.25) * 40;
+      const energyBtuh = scfh * gasLHV;
+      const fuelEnergy = feedDry * WOOD_LHV_DRY;
+      const efficiency = (energyBtuh / fuelEnergy) * 100;
+      const exitTemp = insulated ? tempF * 0.55 : tempF * 0.45;
+
+      return { tempF, er, efficiency, tarMg, scfm, scfh, energyBtuh, exitTemp, hearthLoad, areaIn2 };
+    }
+
+    function calculateDownstream(reactor) {
+      const targetExit = parseFloat(document.getElementById('exitTemp').value);
+      const maxTar = parseFloat(document.getElementById('maxTar').value);
+      const scfm = reactor.scfm;
+      const gasExit = reactor.exitTemp;
+      const tarMg = reactor.tarMg;
+
+      const gasLbH = scfm * AIR_DENSITY * 60;
+      const cp = 0.28;
+      const tempDrop = Math.max(0, gasExit - targetExit);
+      const heatRemoved = gasLbH * cp * tempDrop;
+      const waterLbH = heatRemoved / 80;
+      const waterGpm = waterLbH / (60 * 8.34);
+      const coolerArea = heatRemoved / 1200;
+
+      const tarAfterCooler = tarMg * 0.18;
+      const needsCracker = tarAfterCooler > maxTar;
+      const tarLbH = (tarMg * 0.028 * reactor.scfh) / 453600;
+      const tarGalPer2h = (tarLbH * 2) / 7.5;
+      const trapVolume = Math.max(1, Math.ceil(scfm * 0.15));
+      const filterArea = (scfm / 80) * 1.2;
+      const pressureDrop = 0.4 + 0.3 + 0.25;
+
+      return { heatRemoved, waterGpm, coolerArea, tarAfterCooler, needsCracker, tarGalPer2h, trapVolume, filterArea, pressureDrop };
+    }
+
+    function updateDisplay() {
+      document.getElementById('diameterVal').textContent = parseFloat(document.getElementById('diameter').value).toFixed(1);
+      document.getElementById('heightVal').textContent = parseFloat(document.getElementById('height').value).toFixed(1);
+      document.getElementById('moistureVal').textContent = parseFloat(document.getElementById('moisture').value).toFixed(0);
+      document.getElementById('feedVal').textContent = parseFloat(document.getElementById('feed').value).toFixed(1);
+      document.getElementById('airflowVal').textContent = parseFloat(document.getElementById('airflow').value).toFixed(1);
+      document.getElementById('exitTempVal').textContent = parseFloat(document.getElementById('exitTemp').value).toFixed(0);
+      document.getElementById('maxTarVal').textContent = parseFloat(document.getElementById('maxTar').value).toFixed(0);
+
+      const reactor = calculateReactor();
+      const downstream = calculateDownstream(reactor);
+
+      document.getElementById('tempF').textContent = reactor.tempF.toFixed(0);
+      document.getElementById('er').textContent = reactor.er.toFixed(3);
+      document.getElementById('eff').textContent = reactor.efficiency.toFixed(1);
+      document.getElementById('tar').textContent = reactor.tarMg.toFixed(0);
+      document.getElementById('scfm').textContent = reactor.scfm.toFixed(2);
+      document.getElementById('energy').textContent = Math.round(reactor.energyBtuh);
+      document.getElementById('gasExitTemp').textContent = reactor.exitTemp.toFixed(0);
+      document.getElementById('hearthLoad').textContent = reactor.hearthLoad.toFixed(2);
+
+      document.getElementById('coolerHeat').textContent = Math.round(downstream.heatRemoved);
+      document.getElementById('waterFlow').textContent = downstream.waterGpm.toFixed(2);
+      document.getElementById('coolerArea').textContent = downstream.coolerArea.toFixed(1);
+      document.getElementById('trapVolume').textContent = downstream.trapVolume;
+      document.getElementById('tarPerEmpty').textContent = downstream.tarGalPer2h.toFixed(3);
+      document.getElementById('filterArea').textContent = downstream.filterArea.toFixed(2);
+      document.getElementById('pressureDrop').textContent = downstream.pressureDrop.toFixed(2);
+
+      document.getElementById('reactorTar').textContent = reactor.tarMg.toFixed(0);
+      document.getElementById('afterCoolerTar').textContent = downstream.tarAfterCooler.toFixed(0);
+      document.getElementById('engineMax').textContent = parseFloat(document.getElementById('maxTar').value).toFixed(0);
+
+      const tarStatus = document.getElementById('tarStatus');
+      const tarWarning = document.getElementById('tarWarning');
+      if (downstream.needsCracker) {
+        tarStatus.textContent = 'TAR MANAGEMENT ⚠️ ADDITIONAL CRACKING NEEDED';
+        tarStatus.style.color = 'var(--red)';
+        tarWarning.innerHTML = `<div class="warning">After cooler: ${downstream.tarAfterCooler.toFixed(0)} mg/Nm³ exceeds engine limit of ${document.getElementById('maxTar').value} mg/Nm³. Improve oxidation temperature, insulation, or add thermal cracker / better filtration.</div>`;
+      } else {
+        tarStatus.textContent = 'TAR MANAGEMENT ✓ WITHIN LIMIT';
+        tarStatus.style.color = 'var(--green)';
+        tarWarning.innerHTML = `<div class="success">Tar after cooler is within the selected engine limit.</div>`;
+      }
+
+      if (state.threeScene) updateThreeScene();
+    }
+
+    // ========== ENHANCED 3D (OPTION 1) ==========
+    function initThreeScene() {
+      const container = document.getElementById('threeDContainer');
+      while (container.firstChild) container.removeChild(container.firstChild);
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x12161f);
+
+      const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 500);
+      camera.position.set(28, 18, 28);
+      camera.lookAt(0, 4, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Lights
+      const amb = new THREE.AmbientLight(0xffffff, 0.45);
+      scene.add(amb);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+      dir.position.set(40, 50, 30);
+      scene.add(dir);
+      const fill = new THREE.DirectionalLight(0x88aaff, 0.25);
+      fill.position.set(-30, 20, -20);
+      scene.add(fill);
+
+      // Grid
+      const grid = new THREE.GridHelper(60, 30, 0x3f4655, 0x2a2f3a);
+      scene.add(grid);
+
+      state.threeScene = scene;
+      state.threeRenderer = renderer;
+      state.threeCamera = camera;
+
+      // Simple orbit via mouse
+      let isDragging = false, prev = { x: 0, y: 0 };
+      let spherical = { theta: Math.PI / 4, phi: Math.PI / 3.2, radius: 42 };
+
+      function updateCamera() {
+        camera.position.x = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+        camera.position.y = spherical.radius * Math.cos(spherical.phi);
+        camera.position.z = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+        camera.lookAt(0, 5, 0);
+      }
+      updateCamera();
+
+      renderer.domElement.addEventListener('mousedown', e => {
+        isDragging = true;
+        prev = { x: e.clientX, y: e.clientY };
+      });
+      renderer.domElement.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - prev.x;
+        const dy = e.clientY - prev.y;
+        spherical.theta -= dx * 0.008;
+        spherical.phi = Math.max(0.2, Math.min(Math.PI / 2.1, spherical.phi + dy * 0.008));
+        prev = { x: e.clientX, y: e.clientY };
+        updateCamera();
+      });
+      renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+      renderer.domElement.addEventListener('mouseleave', () => isDragging = false);
+      renderer.domElement.addEventListener('wheel', e => {
+        e.preventDefault();
+        spherical.radius = Math.max(15, Math.min(80, spherical.radius + e.deltaY * 0.04));
+        updateCamera();
+      });
+
+      window.addEventListener('resize', () => {
+        const w = container.clientWidth, h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      function animate() {
+        state.animId = requestAnimationFrame(animate);
+        // Simple particle drift if present
+        if (state.particleSystem) {
+          const pos = state.particleSystem.geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            pos.array[i * 3 + 1] -= 0.04 + Math.random() * 0.03;
+            if (pos.array[i * 3 + 1] < -2) pos.array[i * 3 + 1] = 18;
+          }
+          pos.needsUpdate = true;
+        }
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      updateThreeScene();
+    }
+
+    function clearThreeObjects() {
+      if (!state.threeScene) return;
+      Object.values(state.threeObjects).forEach(obj => {
+        if (obj) {
+          state.threeScene.remove(obj);
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+            else obj.material.dispose();
+          }
+        }
+      });
+      state.threeObjects = {};
+      if (state.particleSystem) {
+        state.threeScene.remove(state.particleSystem);
+        state.particleSystem.geometry.dispose();
+        state.particleSystem.material.dispose();
+        state.particleSystem = null;
+      }
+    }
+
+    function makeMat(color, wire) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        metalness: 0.35,
+        roughness: 0.55,
+        wireframe: !!wire,
+        transparent: true,
+        opacity: wire ? 0.7 : 0.92,
+        side: THREE.DoubleSide
+      });
+    }
+
+    function updateThreeScene() {
+      if (!state.threeScene) return;
+      clearThreeObjects();
+
+      const dIn = parseFloat(document.getElementById('diameter').value);
+      const hIn = parseFloat(document.getElementById('height').value);
+      const r = dIn / 24;          // radius in scene units (rough scale)
+      const H = hIn / 12;         // height in scene units
+      const throatR = r * 0.55;   // constriction
+
+      const cutaway = document.getElementById('showCutaway').checked;
+      const showZones = document.getElementById('showZones').checked;
+      const showNozzles = document.getElementById('showNozzles').checked;
+      const showFlow = document.getElementById('showFlow').checked;
+      const wire = document.getElementById('showWire').checked;
+      const showCooler = document.getElementById('showCooler3d').checked;
+      const showTrap = document.getElementById('showTrap3d').checked;
+      const showFilter = document.getElementById('showFilter3d').checked;
+
+      // ---- Reactor body (Imbert-style) ----
+      // Outer shell (full or half for cutaway)
+      const shellGeo = new THREE.CylinderGeometry(r * 1.15, r * 1.15, H, 32, 1, false, 0, cutaway ? Math.PI : Math.PI * 2);
+      const shell = new THREE.Mesh(shellGeo, makeMat(0x6b7280, wire));
+      shell.position.y = H / 2;
+      state.threeScene.add(shell);
+      state.threeObjects.shell = shell;
+
+      // Zone heights (fractions of H)
+      const zDry = H * 0.28;
+      const zPyro = H * 0.22;
+      const zOx = H * 0.18;
+      const zRed = H * 0.32;
+
+      if (showZones) {
+        // Drying (top, blue)
+        const dry = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.95, r * 0.95, zDry, 24, 1, false, 0, cutaway ? Math.PI : Math.PI * 2),
+          makeMat(0x60a5fa, wire)
+        );
+        dry.position.y = H - zDry / 2;
+        state.threeScene.add(dry);
+        state.threeObjects.dry = dry;
+
+        // Pyrolysis (yellow/orange)
+        const pyro = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.92, r * 0.85, zPyro, 24, 1, false, 0, cutaway ? Math.PI : Math.PI * 2),
+          makeMat(0xfbbf24, wire)
+        );
+        pyro.position.y = H - zDry - zPyro / 2;
+        state.threeScene.add(pyro);
+        state.threeObjects.pyro = pyro;
+
+        // Oxidation / hearth (red, with constriction)
+        const ox = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.75, throatR, zOx, 24, 1, false, 0, cutaway ? Math.PI : Math.PI * 2),
+          makeMat(0xef4444, wire)
+        );
+        ox.position.y = H - zDry - zPyro - zOx / 2;
+        state.threeScene.add(ox);
+        state.threeObjects.ox = ox;
+
+        // Reduction (green)
+        const red = new THREE.Mesh(
+          new THREE.CylinderGeometry(throatR * 1.1, r * 0.9, zRed, 24, 1, false, 0, cutaway ? Math.PI : Math.PI * 2),
+          makeMat(0x10b981, wire)
+        );
+        red.position.y = zRed / 2;
+        state.threeScene.add(red);
+        state.threeObjects.red = red;
+      }
+
+      // Hearth constriction ring (always visible)
+      const throatRing = new THREE.Mesh(
+        new THREE.TorusGeometry(throatR, 0.08, 8, 24),
+        makeMat(0xf97316, wire)
+      );
+      throatRing.rotation.x = Math.PI / 2;
+      throatRing.position.y = zRed;
+      state.threeScene.add(throatRing);
+      state.threeObjects.throat = throatRing;
+
+      // Nozzles (air injection into oxidation zone)
+      if (showNozzles) {
+        const nozzleY = zRed + zOx * 0.4;
+        const nozzleCount = 5;
+        for (let i = 0; i < nozzleCount; i++) {
+          const angle = (i / nozzleCount) * Math.PI * 2 + 0.2;
+          const nx = Math.cos(angle) * (r * 0.95);
+          const nz = Math.sin(angle) * (r * 0.95);
+          const nozzle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.12, r * 0.35, 8),
+            makeMat(0xa78bfa, wire)
+          );
+          nozzle.position.set(nx, nozzleY, nz);
+          nozzle.lookAt(0, nozzleY, 0);
+          nozzle.rotateX(Math.PI / 2);
+          state.threeScene.add(nozzle);
+          state.threeObjects['noz' + i] = nozzle;
+
+          // Air jet indicator
+          if (showFlow) {
+            const jet = new THREE.Mesh(
+              new THREE.ConeGeometry(0.06, 0.4, 6),
+              new THREE.MeshBasicMaterial({ color: 0xc4b5fd, transparent: true, opacity: 0.7 })
+            );
+            jet.position.set(nx * 0.6, nozzleY, nz * 0.6);
+            jet.lookAt(0, nozzleY, 0);
+            state.threeScene.add(jet);
+            state.threeObjects['jet' + i] = jet;
+          }
+        }
+      }
+
+      // Flow arrows (downward through reactor)
+      if (showFlow) {
+        const arrowMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.85 });
+        for (let i = 0; i < 4; i++) {
+          const ay = 2 + i * (H / 4.5);
+          const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.7, 8), arrowMat);
+          arrow.position.set(cutaway ? -r * 0.3 : 0, ay, 0);
+          arrow.rotation.x = Math.PI; // point down
+          state.threeScene.add(arrow);
+          state.threeObjects['arr' + i] = arrow;
+        }
+
+        // Simple particle system for gas flow
+        const pCount = 80;
+        const positions = new Float32Array(pCount * 3);
+        for (let i = 0; i < pCount; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * r * 1.2;
+          positions[i * 3 + 1] = Math.random() * H;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * r * 0.6;
+        }
+        const pGeo = new THREE.BufferGeometry();
+        pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const pMat = new THREE.PointsMaterial({ color: 0x67e8f9, size: 0.18, transparent: true, opacity: 0.7 });
+        state.particleSystem = new THREE.Points(pGeo, pMat);
+        state.threeScene.add(state.particleSystem);
+      }
+
+      // Downstream components
+      const offsetX = r * 4.5;
+
+      if (showCooler) {
+        const cooler = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.7, r * 0.7, H * 0.7, 20),
+          makeMat(0x06b6d4, wire)
+        );
+        cooler.position.set(offsetX, H * 0.35, 0);
+        state.threeScene.add(cooler);
+        state.threeObjects.cooler = cooler;
+      }
+
+      if (showTrap) {
+        const trap = new THREE.Mesh(
+          new THREE.BoxGeometry(r * 1.4, r * 1.8, r * 1.4),
+          makeMat(0xf59e0b, wire)
+        );
+        trap.position.set(offsetX * 1.9, r * 0.9, 0);
+        state.threeScene.add(trap);
+        state.threeObjects.trap = trap;
+      }
+
+      if (showFilter) {
+        const filt = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.55, r * 0.55, H * 1.1, 16),
+          makeMat(0x8b5cf6, wire)
+        );
+        filt.position.set(offsetX * 2.8, H * 0.55, 0);
+        state.threeScene.add(filt);
+        state.threeObjects.filter = filt;
+      }
+
+      // Connecting pipe (simple)
+      if (showCooler || showTrap || showFilter) {
+        const pipe = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.15, 0.15, offsetX * 2.6, 8),
+          makeMat(0x9ca3af, wire)
+        );
+        pipe.rotation.z = Math.PI / 2;
+        pipe.position.set(offsetX * 1.4, 1.2, 0);
+        state.threeScene.add(pipe);
+        state.threeObjects.pipe = pipe;
+      }
+    }
+
+    // ===== Charts / simulation (unchanged) =====
+    function initCharts() {
+      const opts = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#a1a1aa' } } },
+        scales: {
+          x: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } },
+          y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } }
+        }
+      };
+      state.charts.temp = new Chart(document.getElementById('tempChart'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Temp (°F)', data: [], borderColor: '#f97316', tension: 0.1, fill: false }] }, options: opts
+      });
+      state.charts.eff = new Chart(document.getElementById('effChart'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Efficiency (%)', data: [], borderColor: '#10b981', tension: 0.1, fill: false }] }, options: opts
+      });
+      state.charts.tar = new Chart(document.getElementById('tarChart'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Tar (mg/Nm³)', data: [], borderColor: '#f59e0b', tension: 0.1, fill: false }] }, options: opts
+      });
+      state.charts.perf = new Chart(document.getElementById('perfChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [
+          { label: 'Cooler Heat (Btu/h)', data: [], borderColor: '#06b6d4', yAxisID: 'y', tension: 0.1, fill: false },
+          { label: 'Water (gpm)', data: [], borderColor: '#8b5cf6', yAxisID: 'y1', tension: 0.1, fill: false }
+        ]},
+        options: { ...opts, scales: { y: { ...opts.scales.y, position: 'left' }, y1: { ...opts.scales.y, position: 'right', grid: { drawOnChartArea: false } } } }
+      });
+    }
+
+    function updateCharts() {
+      const r = calculateReactor();
+      const d = calculateDownstream(r);
+      state.history.push({
+        time: state.timeStep,
+        temp: r.tempF + (Math.random()-0.5)*20,
+        eff: r.efficiency + (Math.random()-0.5)*2,
+        tar: r.tarMg + (Math.random()-0.5)*15,
+        heat: d.heatRemoved,
+        water: d.waterGpm
+      });
+      if (state.history.length > 60) state.history.shift();
+      const t = state.history.map(h => h.time);
+      state.charts.temp.data.labels = t; state.charts.temp.data.datasets[0].data = state.history.map(h => h.temp); state.charts.temp.update('none');
+      state.charts.eff.data.labels = t; state.charts.eff.data.datasets[0].data = state.history.map(h => h.eff); state.charts.eff.update('none');
+      state.charts.tar.data.labels = t; state.charts.tar.data.datasets[0].data = state.history.map(h => h.tar); state.charts.tar.update('none');
+      state.charts.perf.data.labels = t;
+      state.charts.perf.data.datasets[0].data = state.history.map(h => h.heat);
+      state.charts.perf.data.datasets[1].data = state.history.map(h => h.water);
+      state.charts.perf.update('none');
+    }
+
+    function startSimulation() {
+      state.isRunning = !state.isRunning;
+      if (state.isRunning) {
+        state.simInterval = setInterval(() => { state.timeStep++; updateDisplay(); updateCharts(); }, 500);
+      } else clearInterval(state.simInterval);
+    }
+
+    function resetSimulation() {
+      state.isRunning = false;
+      clearInterval(state.simInterval);
+      state.timeStep = 0;
+      state.history = [];
+      Object.values(state.charts).forEach(c => { c.data.labels = []; c.data.datasets.forEach(ds => ds.data = []); c.update(); });
+      updateDisplay();
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+      if (tabName === 'model' && !state.threeScene) {
+        setTimeout(initThreeScene, 80);
+      } else if (tabName === 'model') {
+        updateThreeScene();
+      }
+    }
+
+    function initDesignSystem() {
+      const components = [
+        { icon: '🔥', name: 'Gasifier Reactor', specs: ['Diameter: 4–12 in', 'Height: 16–36 in', 'Material: Steel + insulation', 'Throat / hearth load critical'] },
+        { icon: '🌊', name: 'Cooler Unit', specs: ['Type: Counter-flow', 'Target exit: 100–150 °F', 'Water flow calculated', 'Material: Copper / stainless'] },
+        { icon: '🛢️', name: 'Tar Trap', specs: ['Volume sized to flow', 'Empty periodically', 'Material: Steel'] },
+        { icon: '🔧', name: 'Filter Unit', specs: ['Packed bed or fabric', 'Area ~0.01–0.02 ft²/cfm', 'Media: sawdust / charcoal'] },
+        { icon: '💨', name: 'Air Injection', specs: ['Nozzles per FAO table', 'Velocity 100–115 ft/s', 'Air: 1.0–1.5 lb per lb dry wood'] },
+        { icon: '⚙️', name: 'Engine Interface', specs: ['Tar limit: ~50–100 mg/Nm³', 'Derate 20–40 %', 'Cool gas preferred'] }
+      ];
+      document.getElementById('componentLibrary').innerHTML = components.map(c =>
+        `<div class="component"><div class="component-title"><div class="component-icon">${c.icon}</div>${c.name}</div>${c.specs.map(s => `<div class="component-spec">• ${s}</div>`).join('')}</div>`
+      ).join('');
+    }
+
+    document.querySelectorAll('input[type="range"], input[type="checkbox"]').forEach(el => {
+      el.addEventListener('change', updateDisplay);
+      el.addEventListener('input', updateDisplay);
+    });
+
+    // ============ DOWNLOAD FUNCTION ============
+    function downloadSimulator() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'wood-gasifier-simulator.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    initCharts();
+    initDesignSystem();
+    updateDisplay();
+  </script>
+
+<span style="visibility: hidden;" id="__TIMER_INJECTION_FLAG__{a8cf72f7-09b7-4cd4-9aaa-7a023bf09916}"></span></body></html>
