@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home Wood Gasifier Calculator & Simulator</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <style>
     :root {
       --bg: #0f1419; --card: #1a1f2e; --text: #e4e4e7; --muted: #a1a1aa;
@@ -175,8 +177,10 @@
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
         <button id="btnReset" class="reset" onclick="resetTrends()">Reset</button>
         <button id="btnSave" class="save" onclick="saveData()" disabled>Save Data</button>
+        <button id="btnZoom" class="reset" onclick="resetZoom()">Reset Zoom</button>
       </div>
       <div class="sim-status" id="simStatus">Ready. Set duration (1–168 h) and press Start.</div>
+      <p class="note">Scroll / pinch to zoom time axis · drag to pan · Reset Zoom restores full view.</p>
 
       <h2 style="margin-top:1.25rem;color:var(--cyan)">Combined overview (normalized 0–100)</h2>
       <p class="note">All metrics scaled so shapes can be compared on one chart. Absolute values remain on the individual charts below.</p>
@@ -226,6 +230,15 @@
       corn:     { name: 'Corn cobs', yield: 32, tarF: 1.3,  C: 0.47, H: 0.06, O: 0.47, note: 'Higher ash; grate design important.' },
       pellets:  { name: 'Pellets', yield: 37, tarF: 0.95, C: 0.50, H: 0.06, O: 0.44, note: 'Consistent size; watch densification.' },
       sawdust:  { name: 'Sawdust', yield: 34, tarF: 1.4,  C: 0.49, H: 0.06, O: 0.45, note: 'Needs Missouri-style design.' }
+    };
+
+    const zoomOpts = {
+      pan: { enabled: true, mode: 'x', modifierKey: null },
+      zoom: {
+        wheel: { enabled: true },
+        pinch: { enabled: true },
+        mode: 'x'
+      }
     };
 
     let compChart = null;
@@ -437,7 +450,10 @@
               title: { display: true, text: yTitle, color: '#a1a1aa' }
             }
           },
-          plugins: { legend: { labels: { color: '#a1a1aa' } } }
+          plugins: {
+            legend: { labels: { color: '#a1a1aa' } },
+            zoom: zoomOpts
+          }
         }
       });
     }
@@ -477,11 +493,13 @@
               title: { display: true, text: 'Volume %', color: '#a1a1aa' }
             }
           },
-          plugins: { legend: { labels: { color: '#a1a1aa' } } }
+          plugins: {
+            legend: { labels: { color: '#a1a1aa' } },
+            zoom: zoomOpts
+          }
         }
       });
 
-      // Combined normalized chart
       trendCharts.combined = new Chart(document.getElementById('trendCombined').getContext('2d'), {
         type: 'line',
         data: {
@@ -510,7 +528,10 @@
               title: { display: true, text: 'Normalized % of run max', color: '#a1a1aa' }
             }
           },
-          plugins: { legend: { labels: { color: '#a1a1aa' } } }
+          plugins: {
+            legend: { labels: { color: '#a1a1aa' } },
+            zoom: zoomOpts
+          }
         }
       });
     }
@@ -547,7 +568,6 @@
       trendCharts.comp.data.datasets[1].data = coA;
       trendCharts.comp.update('none');
 
-      // Tar inverted so "better" (lower tar) goes up on the combined chart
       const tarMax = Math.max(...tarA, 1);
       const tarInv = tarA.map(v => ((tarMax - v) / tarMax) * 100);
 
@@ -563,6 +583,12 @@
 
     function setSaveEnabled() {
       document.getElementById('btnSave').disabled = !(sim.history.length > 0 && !sim.running);
+    }
+
+    function resetZoom() {
+      Object.values(trendCharts).forEach(c => {
+        if (c && typeof c.resetZoom === 'function') c.resetZoom();
+      });
     }
 
     function stepTrends() {
