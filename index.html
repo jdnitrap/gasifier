@@ -3,136 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wood Gasifier - Test Page</title>
+  <title>Home Wood Gasifier Calculator</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg: #0f1419;
+      --card: #1a1f2e;
+      --text: #e4e4e7;
+      --muted: #a1a1aa;
+      --accent: #fbbf24;
+      --green: #10b981;
+      --cyan: #06b6d4;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --border: #3f4655;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.25rem;
     }
-    .container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      padding: 60px 40px;
-      text-align: center;
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 0.35rem; }
+    .sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
     }
-    h1 {
-      color: #333;
-      margin-bottom: 20px;
-      font-size: 2.5em;
+    h2 { font-size: 1.1rem; color: var(--green); margin-bottom: 1rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
     }
-    .status {
-      display: inline-block;
-      background: #10b981;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 600;
-      margin-bottom: 30px;
-      font-size: 1.1em;
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+    select, input[type=number], input[type=range] {
+      width: 100%;
+      background: #0f1419;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
     }
-    p {
-      color: #666;
-      line-height: 1.8;
-      margin-bottom: 20px;
-      font-size: 1.1em;
+    input[type=range] { padding: 0; height: 6px; }
+    .val { font-weight: 600; color: var(--accent); }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
     }
-    .info-box {
-      background: #f3f4f6;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 30px 0;
-      text-align: left;
+    .metric {
+      background: rgba(0,0,0,0.25);
+      border-left: 3px solid var(--green);
+      padding: 0.75rem;
+      border-radius: 6px;
     }
-    .info-box h3 {
-      color: #333;
-      margin-bottom: 10px;
+    .metric.orange { border-left-color: var(--orange); }
+    .metric.cyan { border-left-color: var(--cyan); }
+    .metric.red { border-left-color: var(--red); }
+    .m-label { font-size: 0.7rem; color: var(--muted); }
+    .m-val { font-size: 1.25rem; font-weight: 700; }
+    .m-unit { font-size: 0.7rem; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
+    .warn {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
     }
-    .info-box ul {
-      list-style: none;
-      color: #555;
-    }
-    .info-box li {
-      padding: 8px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .info-box li:last-child {
-      border-bottom: none;
-    }
-    .info-box li:before {
-      content: "✓ ";
-      color: #10b981;
-      font-weight: bold;
-      margin-right: 8px;
-    }
-    .timestamp {
-      color: #999;
-      font-size: 0.9em;
-      margin-top: 30px;
-    }
-    .github-link {
-      display: inline-block;
-      margin-top: 30px;
-      padding: 12px 24px;
-      background: #333;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: background 0.3s;
-    }
-    .github-link:hover {
-      background: #555;
+    .ok {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid var(--green);
+      color: #86efac;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⚙️ Wood Gasifier</h1>
-    <div class="status">✓ Test Page Active</div>
+    <h1>Home Wood Gasifier Calculator</h1>
+    <p class="sub">DIY sizing tool · English units · Based on FEMA, FAO/SERI, and practical builder rules</p>
 
-    <p>Repository is ready for development on GitHub Pages.</p>
+    <div class="card">
+      <h2>1. Fuel</h2>
+      <div class="grid">
+        <div>
+          <label>Fuel type</label>
+          <select id="fuel">
+            <option value="hardwood">Hardwood chips / blocks (oak, hickory, maple)</option>
+            <option value="softwood">Softwood chips / blocks (pine, fir)</option>
+            <option value="pellets">Wood pellets</option>
+            <option value="sawdust">Sawdust / shavings (Missouri-style)</option>
+            <option value="ag">Agricultural residue (corn cobs, etc.)</option>
+          </select>
+        </div>
+        <div>
+          <label>Moisture content (% wet basis) — <span class="val" id="moistVal">15</span>%</label>
+          <input type="range" id="moisture" min="8" max="35" value="15" step="1">
+        </div>
+        <div>
+          <label>Dry feed rate (lb/h) — <span class="val" id="feedVal">8</span></label>
+          <input type="range" id="feed" min="2" max="40" value="8" step="0.5">
+        </div>
+      </div>
+      <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas. Keep moisture under 20 % for engine use.</p>
+    </div>
 
-    <div class="info-box">
-      <h3>Repository Status</h3>
-      <ul>
-        <li>Repository: jdnitrap/wood-gasifier</li>
-        <li>Branch: main</li>
-        <li>Status: Clean slate - ready for development</li>
-        <li>GitHub Pages: Enabled and configured</li>
+    <div class="card">
+      <h2>2. Target Power / Design Type</h2>
+      <div class="grid">
+        <div>
+          <label>Design style</label>
+          <select id="style">
+            <option value="imbert">Imbert-style throated downdraft (best clean gas)</option>
+            <option value="fema">FEMA stratified open-top (simpler build)</option>
+          </select>
+        </div>
+        <div>
+          <label>Desired engine power (hp) — <span class="val" id="hpVal">10</span></label>
+          <input type="range" id="hp" min="3" max="50" value="10" step="1">
+        </div>
+        <div>
+          <label>Hearth load target (scf/h·in²)</label>
+          <select id="hearthLoad">
+            <option value="1.5">1.5 — conservative / low tar</option>
+            <option value="2.3" selected>2.3 — typical design point</option>
+            <option value="2.6">2.6 — higher output</option>
+            <option value="2.9">2.9 — near max continuous</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Calculated Results</h2>
+      <div class="metrics" id="metrics"></div>
+      <div id="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>FEMA Fire-Tube Quick Reference (Stratified)</h2>
+      <table>
+        <thead>
+          <tr><th>Inside Dia (in)</th><th>Min Length (in)</th><th>Approx Engine (hp)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>6</td><td>16</td><td>~30</td></tr>
+          <tr><td>8</td><td>20</td><td>~50</td></tr>
+          <tr><td>10</td><td>24</td><td>~80</td></tr>
+          <tr><td>12</td><td>28</td><td>~120</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Never go below 6 in diameter for wood chips. Prototype used 6 in × ~19 in on a 35 hp tractor.</p>
+    </div>
+
+    <div class="card">
+      <h2>Key Design Rules</h2>
+      <ul style="font-size:0.9rem; color:var(--muted); padding-left:1.2rem;">
+        <li>Gas yield ≈ 35–40 scf per lb dry wood</li>
+        <li>Air ≈ 1.0–1.5 lb per lb dry wood (ER 0.25–0.35)</li>
+        <li>Nozzle air velocity 100–115 ft/s</li>
+        <li>Reduction zone height minimum 8 in</li>
+        <li>Insulation is not optional for reliable low-tar operation</li>
+        <li>Engine-quality tar target typically under 100 mg/Nm³</li>
       </ul>
-    </div>
-
-    <div class="info-box">
-      <h3>Live URL</h3>
-      <p style="font-family: monospace; margin: 10px 0;">
-        https://jdnitrap.github.io/wood-gasifier/
-      </p>
-    </div>
-
-    <p>This is a test page verifying GitHub Pages deployment is working correctly.</p>
-
-    <a href="https://github.com/jdnitrap/wood-gasifier" class="github-link" target="_blank">
-      View Repository on GitHub →
-    </a>
-
-    <div class="timestamp">
-      Created: <span id="timestamp"></span>
     </div>
   </div>
 
   <script>
-    document.getElementById('timestamp').textContent = new Date().toLocaleString();
+    const fuels = {
+      hardwood: { note: "Hardwood chips/blocks give the most stable, lower-tar gas. Best overall choice for engines.", yield: 38, tarFactor: 0.85 },
+      softwood: { note: "Softwood works but tends to produce more tar and can bridge more easily. Dry well.", yield: 36, tarFactor: 1.15 },
+      pellets: { note: "Pellets are consistent size and dry, but can densify and restrict flow if not managed.", yield: 37, tarFactor: 0.95 },
+      sawdust: { note: "Sawdust needs a Missouri-style or specially designed unit. Bridging and high tar are common risks.", yield: 34, tarFactor: 1.4 },
+      ag: { note: "Ag residues vary widely. Expect more ash and careful grate design.", yield: 32, tarFactor: 1.3 }
+    };
+
+    function calc() {
+      const fuelKey = document.getElementById('fuel').value;
+      const moist = +document.getElementById('moisture').value;
+      const feedDry = +document.getElementById('feed').value;
+      const style = document.getElementById('style').value;
+      const hp = +document.getElementById('hp').value;
+      const Bg = +document.getElementById('hearthLoad').value;
+
+      document.getElementById('moistVal').textContent = moist;
+      document.getElementById('feedVal').textContent = feedDry;
+      document.getElementById('hpVal').textContent = hp;
+      document.getElementById('fuelNote').textContent = fuels[fuelKey].note;
+
+      const yield = fuels[fuelKey].yield * (1 - (moist - 15) * 0.012);
+      const scfh = feedDry * Math.max(28, yield);
+      const scfm = scfh / 60;
+
+      const gasLHV = 140;
+      const energyBtuh = scfh * gasLHV;
+      const approxHpFromGas = energyBtuh / 2500;
+
+      const throatArea = scfh / Bg;
+      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
+
+      const airLbH = feedDry * 1.25;
+      const airCfm = airLbH / (0.076 * 60);
+
+      let tar = 120 * fuels[fuelKey].tarFactor;
+      if (moist > 20) tar *= 1.4;
+      if (moist > 25) tar *= 1.3;
+      if (style === 'fema') tar *= 1.25;
+      if (Bg < 1.8) tar *= 0.85;
+
+      let recDia = Math.max(6, Math.ceil(throatDia + (style === 'imbert' ? 4 : 2)));
+      if (style === 'fema' && recDia < 6) recDia = 6;
+
+      let statusHtml = '';
+      if (moist > 20) {
+        statusHtml = '<div class="warn">Moisture above 20 % will raise tar and lower gas quality. Dry the fuel for engine use.</div>';
+      } else if (tar > 150) {
+        statusHtml = '<div class="warn">Estimated tar is high. Prefer hardwood, lower moisture, proper insulation, and Imbert-style for engines.</div>';
+      } else {
+        statusHtml = '<div class="ok">Moisture and estimated tar look reasonable for a well-insulated, correctly loaded unit.</div>';
+      }
+
+      document.getElementById('metrics').innerHTML =
+        '<div class="metric cyan"><div class="m-label">Gas flow</div><div class="m-val">' + scfm.toFixed(1) + '</div><div class="m-unit">scfm</div></div>' +
+        '<div class="metric"><div class="m-label">Gas energy</div><div class="m-val">' + Math.round(energyBtuh/1000) + '</div><div class="m-unit">kBtu/h</div></div>' +
+        '<div class="metric"><div class="m-label">Throat diameter</div><div class="m-val">' + throatDia.toFixed(2) + '</div><div class="m-unit">in</div></div>' +
+        '<div class="metric"><div class="m-label">Recommended reactor ID</div><div class="m-val">' + recDia + '</div><div class="m-unit">in</div></div>' +
+        '<div class="metric cyan"><div class="m-label">Air required</div><div class="m-val">' + airCfm.toFixed(1) + '</div><div class="m-unit">cfm</div></div>' +
+        '<div class="metric orange"><div class="m-label">Est. tar (raw)</div><div class="m-val">' + Math.round(tar) + '</div><div class="m-unit">mg/Nm³</div></div>' +
+        '<div class="metric"><div class="m-label">Rough engine potential</div><div class="m-val">' + approxHpFromGas.toFixed(0) + '</div><div class="m-unit">hp (gas side)</div></div>' +
+        '<div class="metric"><div class="m-label">Dry wood per hour</div><div class="m-val">' + feedDry + '</div><div class="m-unit">lb/h</div></div>';
+      document.getElementById('status').innerHTML = statusHtml;
+    }
+
+    ['fuel','moisture','feed','style','hp','hearthLoad'].forEach(function(id) {
+      document.getElementById(id).addEventListener('input', calc);
+      document.getElementById(id).addEventListener('change', calc);
+    });
+    calc();
   </script>
 </body>
 </html>
