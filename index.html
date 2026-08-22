@@ -3,79 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Wood Gasifier Calculator & Simulator</title>
+  <title>Hearth Lab — Wood Gasifier Sizer</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <style>
     :root {
-      --bg: #0f1419; --card: #1a1f2e; --text: #e4e4e7; --muted: #a1a1aa;
-      --accent: #fbbf24; --green: #10b981; --cyan: #06b6d4; --orange: #f59e0b;
-      --red: #ef4444; --border: #3f4655; --purple: #8b5cf6;
+      --bg: #14160f; --card: #1c2016; --text: #ece7d8; --muted: #9a937f;
+      --accent: #c9a227; --green: #8aaa6e; --cyan: #9a937f; --orange: #d08a3a;
+      --red: #c45c3e; --border: #3a4030;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 1.25rem; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 0.25rem; }
-    .sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
-    h2 { font-size: 1.1rem; color: var(--green); margin-bottom: 1rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
-    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
-    select, input[type=number], input[type=range] { width: 100%; background: #0f1419; border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; font-size: 0.95rem; }
-    input[type=range] { padding: 0; height: 6px; }
+    body { font-family: "IBM Plex Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
+    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 0.35rem; }
+    .sub { color: var(--muted); margin-bottom: 1.25rem; }
+    nav { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 6px; }
+    nav a:hover { background: var(--card); color: var(--text); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.1rem; }
+    h2 { font-size: 1.05rem; color: var(--green); margin-bottom: 0.85rem; }
+    .kicker { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.9rem; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+    select, input[type=number], input[type=range] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; min-height: 40px; }
+    input[type=range] { padding: 0; height: 6px; min-height: 0; }
     .val { font-weight: 600; color: var(--accent); }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
-    .metric { background: rgba(0,0,0,0.25); border-left: 3px solid var(--green); padding: 0.75rem; border-radius: 6px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.65rem; }
+    .metric { background: rgba(0,0,0,0.22); border-left: 3px solid var(--green); padding: 0.7rem; border-radius: 6px; }
+    .metric.accent { border-left-color: var(--accent); }
     .metric.orange { border-left-color: var(--orange); }
-    .metric.cyan { border-left-color: var(--cyan); }
     .metric.red { border-left-color: var(--red); }
-    .metric.purple { border-left-color: var(--purple); }
-    .m-label { font-size: 0.7rem; color: var(--muted); }
-    .m-val { font-size: 1.15rem; font-weight: 700; }
-    .m-unit { font-size: 0.7rem; color: var(--muted); }
-    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
-    .warn { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
-    .ok { background: rgba(16,185,129,0.12); border: 1px solid var(--green); color: #86efac; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
-    .info { background: rgba(6,182,212,0.1); border: 1px solid var(--cyan); color: #a5f3fc; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
-    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 260px; margin-top: 0.75rem; }
-    .chart-box.tall { height: 340px; }
-    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .m-label { font-size: 0.68rem; color: var(--muted); }
+    .m-val { font-size: 1.12rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .m-unit { font-size: 0.68rem; color: var(--muted); }
+    .note { font-size: 0.82rem; color: var(--muted); margin-top: 0.7rem; }
+    .warn { background: rgba(196,92,62,0.12); border: 1px solid var(--red); color: #e8a090; padding: 0.65rem; border-radius: 6px; margin-top: 0.6rem; font-size: 0.85rem; }
+    .ok { background: rgba(138,170,110,0.12); border: 1px solid var(--green); color: #b6d49a; padding: 0.65rem; border-radius: 6px; margin-top: 0.6rem; font-size: 0.85rem; }
+    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem; height: 250px; margin-top: 0.7rem; }
+    .chart-box.tall { height: 320px; }
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
     @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
-    button { background: var(--green); color: white; border: none; padding: 0.65rem 1.3rem; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 0.4rem; margin-top: 0.4rem; }
-    button.secondary { background: var(--purple); }
-    button.stop { background: var(--red); }
-    button.reset { background: #4b5563; }
-    button.save { background: var(--cyan); color: #0f1419; }
-    button:hover { filter: brightness(1.1); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.75rem; }
-    th, td { padding: 0.45rem; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); }
-    .comp-bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
-    .comp-seg { display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #111; }
+    button { background: var(--accent); color: #14160f; border: none; padding: 0.65rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin: 0.3rem 0.35rem 0 0; min-height: 44px; }
+    button.stop { background: var(--red); color: #fff; }
+    button.reset { background: #3a4030; color: var(--text); }
+    button.save { background: var(--green); color: #14160f; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .comp-bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; margin: 0.6rem 0; }
+    .comp-seg { display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; color: #111; }
     .sim-status { font-size: 0.9rem; margin: 0.5rem 0; color: var(--accent); }
+    .split { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; align-items: start; }
+    @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+    ul.plain { font-size: 0.88rem; color: var(--muted); padding-left: 1.1rem; }
+    ul.plain li { margin: 0.3rem 0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Home Wood Gasifier Calculator & Simulator</h1>
-    <p class="sub">English units · Equilibrium model + realistic fuel-burn trends · DIY guidance</p>
+    <h1>Hearth Lab</h1>
+    <p class="sub">Size the machine from the job. English units · DIY wood gasifier sizer + burn simulator.</p>
+    <nav>
+      <a href="#brief">Brief</a><a href="#snapshot">Snapshot</a><a href="#sizes">Sizes</a>
+      <a href="#path">Gas path</a><a href="#engine">Engine</a><a href="#bom">Build</a>
+      <a href="#sim">Simulate</a>
+    </nav>
 
-    <div class="card">
-      <h2>1. Inputs</h2>
+    <div class="card" id="brief">
+      <div class="kicker">1</div>
+      <h2>Design brief</h2>
       <div class="grid">
-        <div>
-          <label>Gasifier type</label>
-          <select id="gtype">
-            <option value="imbert">Downdraft (Imbert)</option>
-            <option value="fema">FEMA stratified</option>
-            <option value="updraft">Updraft (heat)</option>
+        <div><label>End use</label>
+          <select id="endUse">
+            <option value="engine">Engine / shaft</option>
+            <option value="generator">Generator</option>
+            <option value="heat">Heat only</option>
           </select>
         </div>
-        <div>
-          <label>Primary fuel</label>
+        <div><label>Target continuous power — <span class="val" id="hpVal">8</span> hp</label>
+          <input type="range" id="targetHp" min="2" max="40" value="8" step="0.5">
+        </div>
+        <div><label>Operation hours — <span class="val" id="opHoursVal">4</span> h (max 168)</label>
+          <input type="range" id="opHours" min="1" max="168" value="4" step="1">
+        </div>
+        <div><label>Primary fuel</label>
           <select id="fuel1">
+            <option value="hardwood">Hardwood (oak, hickory, maple)</option>
+            <option value="softwood">Softwood (pine, fir)</option>
+            <option value="chips">Wood chips</option>
+            <option value="charcoal">Charcoal</option>
+            <option value="corn">Corn cobs</option>
+            <option value="pellets">Wood pellets</option>
+            <option value="sawdust">Sawdust / fines</option>
+          </select>
+        </div>
+        <div><label>Blend second fuel</label>
+          <select id="fuel2">
+            <option value="none">None</option>
             <option value="hardwood">Hardwood</option>
             <option value="softwood">Softwood</option>
             <option value="chips">Wood chips</option>
@@ -85,88 +108,109 @@
             <option value="sawdust">Sawdust</option>
           </select>
         </div>
-        <div>
-          <label>Blend second fuel</label>
-          <select id="fuel2">
-            <option value="none">None</option>
-            <option value="hardwood">Hardwood</option>
-            <option value="softwood">Softwood</option>
-            <option value="charcoal">Charcoal</option>
-            <option value="corn">Corn cobs</option>
-          </select>
-        </div>
-        <div>
-          <label>Blend % of second — <span class="val" id="blendVal">0</span>%</label>
+        <div><label>Blend % of second — <span class="val" id="blendVal">0</span>%</label>
           <input type="range" id="blend" min="0" max="50" value="0" step="5">
         </div>
-        <div>
-          <label>Moisture % wb — <span class="val" id="moistVal">15</span></label>
+        <div><label>Moisture, wet basis — <span class="val" id="moistVal">15</span>%</label>
           <input type="range" id="moisture" min="0" max="40" value="15" step="1">
         </div>
-        <div>
-          <label>Particle size mm — <span class="val" id="sizeVal">50</span></label>
+        <div><label>Particle size — <span class="val" id="sizeVal">50</span> mm</label>
           <input type="range" id="psize" min="5" max="150" value="50" step="5">
         </div>
-        <div>
-          <label>Equivalence ratio — <span class="val" id="erVal">0.30</span></label>
+        <div><label>Equivalence ratio — <span class="val" id="erVal">0.30</span></label>
           <input type="range" id="er" min="0.20" max="0.45" value="0.30" step="0.01">
         </div>
-        <div>
-          <label>Dry feed rate lb/h — <span class="val" id="feedVal">8</span></label>
-          <input type="range" id="feed" min="1" max="40" value="8" step="0.5">
-        </div>
-        <div>
-          <label>Operation hours — <span class="val" id="opHoursVal">4</span> h (max 168)</label>
-          <input type="range" id="opHours" min="1" max="168" value="4" step="1">
-        </div>
-        <div>
-          <label>Hearth load scf/h·in²</label>
-          <select id="hearthLoad">
-            <option value="1.5">1.5 conservative</option>
-            <option value="2.3" selected>2.3 typical</option>
-            <option value="2.6">2.6 higher</option>
-            <option value="2.9">2.9 near max</option>
+        <div><label>Hearth load (sets throat size)</label>
+          <select id="hearthBand">
+            <option value="conservative">12 scf/h·in² — conservative</option>
+            <option value="typical" selected>20 scf/h·in² — typical DIY engine</option>
+            <option value="higher">28 scf/h·in² — compact</option>
+            <option value="max">36 scf/h·in² — near max</option>
           </select>
         </div>
-      </div>
-      <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas for engines.</p>
-      <p class="note" id="fuelLoadNote">Estimated dry fuel for this run: <span class="val" id="totalFuelVal">32</span> lb (feed rate × operation hours).</p>
-    </div>
-
-    <div class="card">
-      <h2>2. Engine Matching</h2>
-      <div class="grid">
-        <div>
-          <label>Displacement (cu in)</label>
+        <div><label>Geometry family</label>
+          <select id="familyOverride">
+            <option value="auto">Auto from fuel</option>
+            <option value="imbert">Imbert (constricted)</option>
+            <option value="fema">Stratified / FEMA</option>
+            <option value="missouri">Missouri / fines</option>
+            <option value="updraft">Updraft (heat)</option>
+          </select>
+        </div>
+        <div><label>Max reactor ID (0 = no limit) — <span class="val" id="maxDiaVal">—</span></label>
+          <input type="range" id="maxReactorIn" min="0" max="36" value="0" step="1">
+        </div>
+        <div><label>Engine displacement (cu in)</label>
           <input type="number" id="disp" value="200" min="50" max="500" step="10">
         </div>
-        <div>
-          <label>RPM</label>
+        <div><label>Engine RPM</label>
           <input type="number" id="rpm" value="1800" min="800" max="3600" step="100">
         </div>
       </div>
+      <p class="note" id="fuelNote"></p>
+      <p class="note">Dry fuel for this run: <span class="val" id="totalFuelVal">—</span> lb at <span class="val" id="feedVal">—</span> lb/h. Sizes are calculated from that duty — not a preset kit.</p>
     </div>
 
-    <div class="card">
-      <h2>3. Snapshot Results</h2>
-      <button onclick="runSim()">Update Snapshot</button>
-      <button class="secondary" onclick="compareFuels()">Compare Fuels</button>
+    <div class="card" id="snapshot">
+      <div class="kicker">2</div>
+      <h2>Snapshot results</h2>
       <div class="metrics" id="metrics"></div>
       <div id="compBars"></div>
-      <div class="chart-box" style="height:200px"><canvas id="compChart"></canvas></div>
       <div id="status"></div>
-      <div id="guidance" class="info" style="display:none;"></div>
     </div>
 
-    <div class="card">
-      <h2>4. Running Trends + Fuel Burn</h2>
+    <div class="card" id="sizes">
+      <div class="kicker">3</div>
+      <h2>Required sizes — build to these</h2>
+      <p class="note" id="familyReason"></p>
+      <p>Suggested family: <span class="val" id="familyName"></span></p>
+      <div class="split" style="margin-top:0.8rem">
+        <svg viewBox="0 0 220 320" width="100%" role="img" aria-label="Gasifier schematic">
+          <rect x="50" y="12" width="120" height="70" rx="4" fill="none" stroke="#ece7d8" stroke-width="2"/>
+          <text x="110" y="42" text-anchor="middle" fill="#ece7d8" font-size="10" id="svgHop">Hopper</text>
+          <path d="M70 82 L70 120 L95 150 L95 210 L125 210 L125 150 L150 120 L150 82" fill="none" stroke="#c9a227" stroke-width="2.2"/>
+          <text x="110" y="172" text-anchor="middle" fill="#ece7d8" font-size="9" id="svgThroat">Throat</text>
+          <text x="110" y="196" text-anchor="middle" fill="#9a937f" font-size="8" id="svgRed">Reduction</text>
+          <rect x="90" y="210" width="40" height="8" fill="#c9a227"/>
+          <text x="110" y="236" text-anchor="middle" fill="#9a937f" font-size="8" id="svgAsh">Grate</text>
+          <path d="M125 250 L170 250 L170 268" fill="none" stroke="#ece7d8" stroke-width="2"/>
+          <text x="174" y="264" fill="#ece7d8" font-size="8" id="svgPipe">Gas</text>
+          <text x="110" y="300" text-anchor="middle" fill="#9a937f" font-size="8" id="svgShell">Shell</text>
+        </svg>
+        <div class="metrics" id="sizeMetrics"></div>
+      </div>
+    </div>
+
+    <div class="card" id="path">
+      <div class="kicker">4</div>
+      <h2>Cooling, filtration, piping</h2>
+      <div class="metrics" id="coolMetrics"></div>
+      <ol class="plain" id="coolStages" style="margin-top:0.8rem"></ol>
+    </div>
+
+    <div class="card" id="engine">
+      <div class="kicker">5</div>
+      <h2>Engine matching</h2>
+      <div class="metrics" id="engMetrics"></div>
+      <p class="note" id="engNote"></p>
+    </div>
+
+    <div class="card" id="bom">
+      <div class="kicker">6–7</div>
+      <h2>Materials, ops, and notes</h2>
+      <ul class="plain" id="bomList"></ul>
+      <ul class="plain" id="guideList" style="margin-top:0.6rem"></ul>
+      <p class="note">Simplified equilibrium + Reed/FEMA/Imbert rules of thumb. Insight for DIY sizing, not a certified design.</p>
+    </div>
+
+    <div class="card" id="sim">
+      <div class="kicker">8</div>
+      <h2>Running trends + fuel burn</h2>
       <div class="grid">
-        <div>
-          <label>Duration (hours) — <span class="val" id="hoursVal">4</span> (synced with Operation hours)</label>
+        <div><label>Duration — <span class="val" id="hoursVal">4</span> h</label>
           <input type="range" id="hours" min="1" max="168" value="4" step="1">
         </div>
-        <div>
-          <label>Time step (minutes)</label>
+        <div><label>Time step (minutes)</label>
           <select id="timestep">
             <option value="5">5 min</option>
             <option value="10" selected>10 min</option>
@@ -176,21 +220,16 @@
           </select>
         </div>
       </div>
-      <p class="note">Total fuel = feed rate × operation hours. Burn rate is exact. Curves include startup, natural variation, and a gradual fade as fuel runs out.</p>
-      <div style="margin-top:0.75rem">
+      <div>
         <button id="btnStart" onclick="startTrends()">Start</button>
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
-        <button id="btnReset" class="reset" onclick="resetTrends()">Reset</button>
-        <button id="btnSave" class="save" onclick="saveData()" disabled>Save Data</button>
-        <button id="btnZoom" class="reset" onclick="resetZoom()">Reset Zoom</button>
+        <button class="reset" onclick="resetTrends()">Reset</button>
+        <button id="btnSave" class="save" onclick="saveData()" disabled>Save data</button>
+        <button class="reset" onclick="resetZoom()">Reset zoom</button>
       </div>
-      <div class="sim-status" id="simStatus">Ready. Set operation hours and press Start.</div>
-      <p class="note">Scroll / pinch to zoom time axis · drag to pan · Reset Zoom restores full view.</p>
-
-      <h2 style="margin-top:1.25rem;color:var(--cyan)">Combined overview (normalized 0–100)</h2>
-      <p class="note">All metrics scaled so shapes can be compared on one chart. Absolute values remain on the individual charts below.</p>
+      <div class="sim-status" id="simStatus">Set hours and press Start. Fuel burns at the sizer feed rate.</div>
+      <p class="note">Scroll / pinch to zoom time · drag to pan. Startup ~30–45 min, organic variation, fade on last ~12% of fuel.</p>
       <div class="chart-box tall"><canvas id="trendCombined"></canvas></div>
-
       <div class="chart-row">
         <div class="chart-box"><canvas id="trendFuel"></canvas></div>
         <div class="chart-box"><canvas id="trendLHV"></canvas></div>
@@ -200,544 +239,429 @@
         <div class="chart-box"><canvas id="trendPower"></canvas></div>
       </div>
       <div class="chart-box"><canvas id="trendComp"></canvas></div>
-      <p class="note">Startup ~30–45 min, then steady with organic variation. Last ~10–15% of fuel produces a smooth decline. Use Save Data after the run stops to download a CSV.</p>
-    </div>
-
-    <div class="card" id="compareCard" style="display:none;">
-      <h2>Multi-Fuel Comparison</h2>
-      <table id="compareTable"><thead><tr><th>Fuel</th><th>LHV</th><th>H₂ %</th><th>CO %</th><th>Tar</th><th>Notes</th></tr></thead><tbody></tbody></table>
-    </div>
-
-    <div class="card">
-      <h2>5. Reactor Sizing</h2>
-      <div class="metrics" id="sizeMetrics"></div>
-    </div>
-
-    <div class="card">
-      <h2>Key Design Rules</h2>
-      <ul style="font-size:0.9rem; color:var(--muted); padding-left:1.2rem;">
-        <li>Gas yield ≈ 35–40 scf per lb dry wood</li>
-        <li>Air ≈ 1.0–1.5 lb per lb dry wood (ER 0.25–0.35)</li>
-        <li>Nozzle velocity 100–115 ft/s · Reduction zone ≥ 8 in</li>
-        <li>Insulation is critical for low tar</li>
-        <li>Engine-quality tar target typically < 100 mg/Nm³</li>
-        <li>Model is simplified equilibrium — use for insight, not final design</li>
-      </ul>
     </div>
   </div>
 
-  <script>
-    const FUELS = {
-      hardwood: { name: 'Hardwood', yield: 38, tarF: 0.85, C: 0.50, H: 0.06, O: 0.44, note: 'Most stable, lower-tar gas for engines.' },
-      softwood: { name: 'Softwood', yield: 36, tarF: 1.15, C: 0.51, H: 0.06, O: 0.43, note: 'Higher tar tendency; dry well.' },
-      chips:    { name: 'Wood chips', yield: 37, tarF: 1.0,  C: 0.50, H: 0.06, O: 0.44, note: 'Good all-rounder if sized uniformly.' },
-      charcoal: { name: 'Charcoal', yield: 45, tarF: 0.25, C: 0.85, H: 0.03, O: 0.12, note: 'Very clean gas, high LHV, low tar.' },
-      corn:     { name: 'Corn cobs', yield: 32, tarF: 1.3,  C: 0.47, H: 0.06, O: 0.47, note: 'Higher ash; grate design important.' },
-      pellets:  { name: 'Pellets', yield: 37, tarF: 0.95, C: 0.50, H: 0.06, O: 0.44, note: 'Consistent size; watch densification.' },
-      sawdust:  { name: 'Sawdust', yield: 34, tarF: 1.4,  C: 0.49, H: 0.06, O: 0.45, note: 'Needs Missouri-style design.' }
-    };
+<script>
+const FUELS = {
+  hardwood: { name:"Hardwood (oak, hickory, maple)", yield:38, tarF:0.85, C:0.50, H:0.06, O:0.44, ash:0.008, bulk:18, note:"Most stable, lower-tar gas for engines. Keep blocky and dry.", family:"imbert" },
+  softwood: { name:"Softwood (pine, fir)", yield:36, tarF:1.15, C:0.51, H:0.06, O:0.43, ash:0.006, bulk:14, note:"Higher resin/tar tendency. Dry well and keep particle size uniform.", family:"imbert" },
+  chips: { name:"Wood chips", yield:37, tarF:1.0, C:0.50, H:0.06, O:0.44, ash:0.01, bulk:16, note:"Good all-rounder if screened uniform. Stratified (FEMA-style) feeds well.", family:"fema" },
+  charcoal: { name:"Charcoal", yield:45, tarF:0.25, C:0.85, H:0.03, O:0.12, ash:0.03, bulk:20, note:"Very clean, high LHV, low tar. Smaller hopper for the same energy.", family:"imbert" },
+  corn: { name:"Corn cobs", yield:32, tarF:1.3, C:0.47, H:0.06, O:0.47, ash:0.025, bulk:12, note:"Higher ash — grate and ash pit matter. Watch clinkers.", family:"fema" },
+  pellets: { name:"Wood pellets", yield:37, tarF:0.95, C:0.50, H:0.06, O:0.44, ash:0.008, bulk:40, note:"Consistent size and dense. Bridging is rare; swelling if they get wet.", family:"fema" },
+  sawdust: { name:"Sawdust / fines", yield:34, tarF:1.4, C:0.49, H:0.06, O:0.45, ash:0.012, bulk:12, note:"Needs Missouri-style / open-core design. Imbert throats bridge and tar.", family:"missouri" }
+};
+const HEARTH = { conservative:12, typical:20, higher:28, max:36 };
+const PI = Math.PI, AIR=0.076, BTU_HP=2545, ENG_EFF=0.22, GEN_EFF=0.85, NOZ_V=108, PIPE_V=22;
 
-    const zoomOpts = {
-      pan: { enabled: true, mode: 'x', modifierKey: null },
-      zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
-    };
+function clamp(n,a,b){ return Math.min(b, Math.max(a,n)); }
+function rnd(n,d){ const p=10**d; return Math.round(n*p)/p; }
+function $id(id){ return document.getElementById(id); }
 
-    let compChart = null;
-    let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null, combined: null };
-    let sim = {
-      running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10,
-      fuelLeft: 0, fuelStart: 0, feedRate: 8,
-      walkH2: 0, walkCO: 0, walkTar: 0, walkLHV: 0
-    };
+function getInput(){
+  return {
+    endUse: $id("endUse").value,
+    targetHp: +$id("targetHp").value,
+    hours: +$id("opHours").value,
+    fuel1: $id("fuel1").value,
+    fuel2: $id("fuel2").value,
+    blendPct: +$id("blend").value,
+    moisture: +$id("moisture").value,
+    psizeMm: +$id("psize").value,
+    er: +$id("er").value,
+    hearthBand: $id("hearthBand").value,
+    familyOverride: $id("familyOverride").value,
+    dispCi: +$id("disp").value,
+    rpm: +$id("rpm").value,
+    maxReactorIn: +$id("maxReactorIn").value
+  };
+}
 
-    function getBlendFuel() {
-      const f1 = FUELS[document.getElementById('fuel1').value];
-      const f2key = document.getElementById('fuel2').value;
-      const frac = +document.getElementById('blend').value / 100;
-      if (f2key === 'none' || frac === 0) return f1;
-      const f2 = FUELS[f2key];
-      return {
-        name: f1.name + ' + ' + f2.name,
-        yield: f1.yield*(1-frac)+f2.yield*frac,
-        tarF: f1.tarF*(1-frac)+f2.tarF*frac,
-        C: f1.C*(1-frac)+f2.C*frac,
-        H: f1.H*(1-frac)+f2.H*frac,
-        O: f1.O*(1-frac)+f2.O*frac,
-        note: 'Blended fuel.'
-      };
+function blendFuel(inp){
+  const f1 = FUELS[inp.fuel1];
+  const frac = inp.fuel2==="none" ? 0 : inp.blendPct/100;
+  if(!frac) return Object.assign({}, f1);
+  const f2 = FUELS[inp.fuel2];
+  const mix=(a,b)=>a*(1-frac)+b*frac;
+  return {
+    name: f1.name+" + "+f2.name, yield:mix(f1.yield,f2.yield), tarF:mix(f1.tarF,f2.tarF),
+    C:mix(f1.C,f2.C), H:mix(f1.H,f2.H), O:mix(f1.O,f2.O), ash:mix(f1.ash,f2.ash),
+    bulk:mix(f1.bulk,f2.bulk), note:"Blended fuel. Size for the worse of the two.",
+    family: f1.tarF>=f2.tarF ? f1.family : f2.family
+  };
+}
+
+function pickFamily(fuel, inp){
+  if(inp.familyOverride!=="auto") return { family: inp.familyOverride, reason:"You overrode the geometry family." };
+  if(inp.endUse==="heat") return { family:"updraft", reason:"Heat-only duty: updraft is simpler and burns tar in the flame." };
+  if(fuel.family==="missouri" || inp.psizeMm<12) return { family:"missouri", reason:"Fines / sawdust need open-core or Missouri-style geometry." };
+  if(fuel.family==="fema" || (inp.psizeMm>8 && inp.psizeMm<35)) return { family:"fema", reason:"Chips and mid-size fuel feed a stratified bed more reliably." };
+  return { family:"imbert", reason:"Blocky dry fuel: constricted Imbert hearth cracks tars." };
+}
+
+function gasComp(fuel, moist, ER, family, tHours, walk){
+  let H2=16+fuel.H*80-moist*0.15, CO=20+fuel.C*15-moist*0.25, CH4=2.5-(ER-0.25)*4, CO2=11+moist*0.2, N2=48;
+  if(ER<0.25){ H2+=2; CO+=1; CO2-=1; }
+  if(ER>0.35){ H2-=3; CO-=2; CO2+=2; N2+=2; }
+  if(moist>20){ H2+=1; CO-=2; CO2+=2; }
+  if(family==="updraft"){ CH4+=1.5; CO-=2; H2-=1; }
+  if(family==="fema"){ CO-=1; H2-=0.5; }
+  const su = tHours===undefined ? 1 : 1/(1+Math.exp(-8*(tHours-0.28)));
+  H2*=0.4+0.6*su; CO*=0.45+0.55*su; CH4*=su; CO2+=(1-su)*8;
+  if(walk){ H2+=walk.h2; CO+=walk.co; }
+  H2=Math.max(3,H2); CO=Math.max(5,CO); CH4=Math.max(0.3,CH4); CO2=Math.max(4,CO2);
+  const sum=H2+CO+CH4+CO2+N2;
+  H2=H2*100/sum; CO=CO*100/sum; CH4=CH4*100/sum; CO2=CO2*100/sum; N2=100-(H2+CO+CH4+CO2);
+  let LHV=(H2*275+CO*320+CH4*910)/100; if(walk) LHV+=walk.lhv;
+  let tar=100*fuel.tarF;
+  if(moist>20) tar*=1.5; if(moist>30) tar*=1.4;
+  if(family==="updraft") tar*=3; if(family==="fema") tar*=1.4;
+  if(ER<0.22||ER>0.4) tar*=1.6;
+  if(tHours!==undefined){
+    tar*=1+1.4*Math.exp(-tHours/0.22);
+    if(walk) tar+=walk.tar;
+    if(tHours>2) tar*=1+Math.min(0.12,(tHours-2)*0.008);
+  }
+  return { H2, CO, CH4, CO2, N2, LHV, tar: Math.round(Math.max(20,tar)) };
+}
+
+function fuelFactor(left, start){
+  if(start<=0) return 0;
+  const frac=left/start;
+  if(frac>0.12) return 1;
+  const x=frac/0.12;
+  return Math.max(0, x*x*(3-2*x));
+}
+
+function compute(){
+  const inp=getInput();
+  const fuel=blendFuel(inp);
+  const {family, reason}=pickFamily(fuel, inp);
+  const gas=gasComp(fuel, inp.moisture, inp.er, family);
+  const yld=Math.max(25, fuel.yield*(1-Math.max(0,inp.moisture-12)*0.012));
+  const Bg=HEARTH[inp.hearthBand];
+  const thermal= inp.endUse==="heat" ? 0.65 : ENG_EFF;
+  const scfh=(inp.targetHp*BTU_HP/thermal)/Math.max(80,gas.LHV);
+  const scfm=scfh/60;
+  const feed=scfh/yld;
+  const total=feed*inp.hours;
+  let throatArea=scfh/Bg;
+  let throatDia=Math.sqrt(4*throatArea/PI);
+  const add= family==="imbert"?4: family==="fema"?2.5: family==="missouri"?6:3;
+  let reactorId=Math.max(6, throatDia+add);
+  if(inp.maxReactorIn>0 && reactorId>inp.maxReactorIn){
+    reactorId=inp.maxReactorIn;
+    throatDia=Math.max(2.5, reactorId-add);
+    throatArea=PI*throatDia*throatDia/4;
+  }
+  const svMs=rnd((scfh/Math.max(1,throatArea))*0.0122,3);
+  const redH=Math.max(8, throatDia*1.15);
+  const oxH=Math.max(6, throatDia*0.9);
+  const hopVol=(total/Math.max(8,fuel.bulk))*1.15;
+  let hopDia=Math.max(reactorId+1,8);
+  let hopHft=hopVol/Math.max(0.2, PI*(hopDia/24)**2);
+  if(hopHft>5){
+    hopDia=Math.min(36, hopDia*Math.sqrt(hopHft/4));
+    hopHft=hopVol/(PI*(hopDia/24)**2);
+  }
+  const recH=oxH+redH+8;
+  const airLb=feed*(5.8*inp.er+0.15);
+  const airCfm=airLb/AIR/60;
+  let nNoz=clamp(Math.round(throatDia/1.35)+2,4,12);
+  if(family==="fema"||family==="missouri"||family==="updraft") nNoz=0;
+  const nArea=nNoz>0?(airCfm/60)*144/NOZ_V:0;
+  const nDia=nNoz>0?Math.sqrt(4*(nArea/nNoz)/PI):0;
+  const pipeId=Math.max(1.25, Math.sqrt(4*((scfm*1.15)/60)*144/PI/PIPE_V));
+  const grate=Math.max(throatArea*1.1, PI*(reactorId*0.45)**2);
+  const ash=Math.max(4, 2+fuel.ash*400);
+  const sizes={
+    family, reason, throatDia:rnd(throatDia,2), throatArea:rnd(throatArea,1),
+    reactorId:rnd(reactorId,1), recH:rnd(recH,0), redH:rnd(redH,1),
+    hopDia:rnd(hopDia,1), hopHin:rnd(hopHft*12,0), hopVol:rnd(hopVol,2),
+    nNoz, nDia:rnd(nDia,3), nArea:rnd(nArea,3), grate:rnd(grate,1), ash:rnd(ash,0),
+    airCfm:rnd(airCfm,2), scfm:rnd(scfm,2), scfh:rnd(scfh,0), feed:rnd(feed,2),
+    total:rnd(total,1), Bg, svMs, pipeId:rnd(pipeId,2)
+  };
+  const mixCfm=(inp.dispCi/1728)*(inp.rpm/2)*0.8;
+  const gasEng=mixCfm*0.48;
+  const shaft=(scfm*gas.LHV*60*ENG_EFF)/BTU_HP;
+  const gaso=(inp.dispCi*inp.rpm)/5500;
+  const derate=gaso>0?(1-shaft/gaso)*100:35;
+  let fit="matched";
+  if(gasEng<scfm*0.75) fit="undersized";
+  if(gasEng>scfm*1.45) fit="oversized";
+  const engine={
+    mixCfm:rnd(mixCfm,1), gasEng:rnd(gasEng,1), shaft:rnd(shaft,1),
+    elec:rnd(shaft*0.746*GEN_EFF,2), gaso:rnd(gaso,1), derate:rnd(clamp(derate,15,55),0), fit,
+    note: fit==="undersized" ? "Engine cannot ingest this gas. Drop target power or raise displacement/RPM."
+        : fit==="oversized" ? "Engine is larger than the gasifier — part-throttle or over-suck (tar risk)."
+        : "Engine airflow and gasifier output are in the same band."
+  };
+  const cooling={
+    duty:rnd(scfh*0.075*0.25*450,0),
+    cond:rnd(feed*(inp.moisture/100)*0.7+feed*0.08,2)
+  };
+  const warnings=[], oks=[], guidance=[];
+  if(inp.moisture>20) warnings.push("Moisture >20% wb raises tar and cuts heating value. Dry fuel first.");
+  if(gas.tar>150 && inp.endUse!=="heat") warnings.push("Estimated tar is high for engines. Prefer dry hardwood/charcoal, Imbert, insulation.");
+  if(inp.psizeMm<10 && family==="imbert") warnings.push("Fines in an Imbert throat bridge. Screen fuel or switch to Missouri.");
+  if(inp.psizeMm>80) warnings.push("Chunks this large leave voids. Split toward 1–3 in (25–80 mm).");
+  if(inp.er<0.22||inp.er>0.38) warnings.push("ER outside 0.22–0.38 usually means tar (too rich) or weak gas (too lean).");
+  if(sizes.svMs<0.08 && inp.endUse!=="heat") warnings.push("Superficial velocity is low. Raise hearth load or shrink the throat.");
+  if(inp.maxReactorIn>0 && sizes.reactorId>=inp.maxReactorIn-0.05) warnings.push("Hit max reactor diameter. Capacity is limited by that shell.");
+  if(fit!=="matched" && inp.endUse!=="heat") warnings.push(engine.note);
+  if(gas.tar<=120 && inp.moisture<=20) oks.push("Numbers look reasonable for a well-insulated unit on this fuel.");
+  guidance.push("Throat area = required gas flow ÷ hearth load. The duty sets the steel.");
+  guidance.push("Hearth load is throat area (scf/h·in²), aligned with Reed SV for engine gas.");
+  guidance.push("Expect 25–40% engine derate vs gasoline. Insulation is the cheapest tar control.");
+  if(family==="imbert") guidance.push("Aim nozzles at the throat. Reduction zone ≥ 8 in. Spring lid as a relief.");
+  if(family==="fema") guidance.push("Stratified bed: air from the top, no tight nozzle ring.");
+  return { inp, fuel, gas, sizes, engine, cooling, warnings, oks, guidance };
+}
+
+function metric(label, val, unit, cls){
+  return '<div class="metric '+(cls||'')+'"><div class="m-label">'+label+'</div><div class="m-val">'+val+'</div><div class="m-unit">'+(unit||'')+'</div></div>';
+}
+
+function render(){
+  const d=compute();
+  $id("hpVal").textContent=d.inp.targetHp;
+  $id("opHoursVal").textContent=d.inp.hours;
+  $id("hours").value=d.inp.hours;
+  $id("hoursVal").textContent=d.inp.hours;
+  $id("blendVal").textContent=d.inp.blendPct;
+  $id("moistVal").textContent=d.inp.moisture;
+  $id("sizeVal").textContent=d.inp.psizeMm;
+  $id("erVal").textContent=d.inp.er.toFixed(2);
+  $id("maxDiaVal").textContent=d.inp.maxReactorIn||"—";
+  $id("fuelNote").textContent=d.fuel.note;
+  $id("totalFuelVal").textContent=d.sizes.total;
+  $id("feedVal").textContent=d.sizes.feed;
+  const g=d.gas, s=d.sizes, e=d.engine;
+  $id("metrics").innerHTML=
+    metric("Gas flow", s.scfm, "scfm", "accent")+
+    metric("LHV", Math.round(g.LHV), "Btu/scf")+
+    metric("Energy", Math.round(s.scfh*g.LHV/1000), "kBtu/h")+
+    metric("Est. tar", g.tar, "mg/Nm³", g.tar>150?"red":g.tar>100?"orange":"")+
+    metric("Shaft power", e.shaft, "hp", "accent")+
+    metric("Electric (est.)", e.elec, "kW")+
+    metric("H₂", g.H2.toFixed(1), "%")+
+    metric("CO", g.CO.toFixed(1), "%");
+  $id("compBars").innerHTML='<div class="comp-bar">'+
+    '<div class="comp-seg" style="width:'+g.H2+'%;background:#ece7d8">H₂</div>'+
+    '<div class="comp-seg" style="width:'+g.CO+'%;background:#c9a227">CO</div>'+
+    '<div class="comp-seg" style="width:'+g.CH4+'%;background:#8aaa6e">CH₄</div>'+
+    '<div class="comp-seg" style="width:'+g.CO2+'%;background:#9a937f">CO₂</div>'+
+    '<div class="comp-seg" style="width:'+g.N2+'%;background:#3a4030;color:#ece7d8">N₂</div></div>';
+  $id("status").innerHTML=d.warnings.map(w=>'<div class="warn">'+w+'</div>').join("")+d.oks.map(w=>'<div class="ok">'+w+'</div>').join("");
+  $id("familyReason").textContent=s.reason;
+  $id("familyName").textContent=s.family.toUpperCase();
+  $id("svgHop").textContent="Hopper "+s.hopDia+'" · '+s.hopHin+'"';
+  $id("svgThroat").textContent="Throat "+s.throatDia+'"';
+  $id("svgRed").textContent="Reduction "+s.redH+'"';
+  $id("svgAsh").textContent="Grate · ash "+s.ash+'"';
+  $id("svgPipe").textContent="Gas "+s.pipeId+'"';
+  $id("svgShell").textContent="Shell "+s.reactorId+'" ID × '+s.recH+'"';
+  let noz=s.nNoz? metric("Nozzles", s.nNoz, "× "+s.nDia+" in", "accent")+metric("Nozzle vel.", NOZ_V, "ft/s") : metric("Air entry","Open / top","no nozzle ring");
+  $id("sizeMetrics").innerHTML=
+    metric("Throat dia", s.throatDia, "in", "accent")+metric("Throat area", s.throatArea, "in²")+
+    metric("Reactor ID", s.reactorId, "in", "accent")+metric("Reactor height", s.recH, "in")+
+    metric("Reduction", s.redH, "in")+metric("Hopper ID", s.hopDia, "in")+
+    metric("Hopper height", s.hopHin, "in")+metric("Hopper vol", s.hopVol, "ft³")+
+    metric("Feed rate", s.feed, "lb/h dry")+metric("Fuel for run", s.total, "lb dry")+
+    metric("Air", s.airCfm, "cfm")+metric("Gas pipe ID", s.pipeId, "in")+
+    noz+metric("Grate area", s.grate, "in²")+metric("Ash pit", s.ash, "in")+
+    metric("Hearth load", s.Bg, "scf/h·in²")+metric("SV (Reed)", s.svMs, "m/s");
+  $id("coolMetrics").innerHTML=
+    metric("Cooler duty", d.cooling.duty.toLocaleString(), "Btu/h", "accent")+
+    metric("Condensate", d.cooling.cond, "lb/h")+
+    metric("Gas pipe", s.pipeId, "in ID @ ~22 ft/s");
+  $id("coolStages").innerHTML=
+    "<li><b>Cyclone / drop-out</b> — knock char dust before the cooler.</li>"+
+    "<li><b>Gas cooler / radiator</b> — drop gas toward ambient so tars condense.</li>"+
+    "<li><b>Condensate trap</b> — drain water and oils away from the mixer.</li>"+
+    "<li><b>Fine filter</b> — cloth, foam, or packed media for engines.</li>";
+  $id("engMetrics").innerHTML=
+    metric("Mixture airflow", e.mixCfm, "cfm @ VE 0.8")+
+    metric("Gas engine can take", e.gasEng, "cfm")+
+    metric("Gasifier output", s.scfm, "scfm", "accent")+
+    metric("Wood-gas shaft", e.shaft, "hp")+
+    metric("Gasoline (rough)", e.gaso, "hp")+
+    metric("Derate", e.derate+"%", "vs gasoline", "orange");
+  $id("engNote").textContent=d.inp.dispCi+" cu in @ "+d.inp.rpm+" rpm. "+e.note;
+  $id("bomList").innerHTML=
+    "<li>Hot zone: stainless or thick mild with liner. Outer shell can be mild steel.</li>"+
+    "<li>Insulate oxidation/reduction. Cold walls make tar.</li>"+
+    "<li>Spring-loaded lid or relief — never a rigid sealed drum.</li>"+
+    "<li>Target shell near "+s.reactorId+"\" ID. Hopper near "+s.hopDia+"\" ID.</li>"+
+    (s.nNoz? "<li>Nozzles: "+s.nNoz+" of "+s.nDia+"\" ID, aimed at the throat, ~"+NOZ_V+" ft/s.</li>":"")+
+    "<li>Seals, condensate drains with traps, CO alarm, outdoor placement.</li>"+
+    "<li>Thermocouple at reduction and after cooler. U-tube manometer on the gas line.</li>";
+  $id("guideList").innerHTML=d.guidance.map(g=>"<li>"+g+"</li>").join("");
+  window._lastDesign=d;
+}
+
+const zoomOpts={ pan:{enabled:true,mode:"x"}, zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:"x"} };
+let trendCharts={};
+let sim={ running:false, timer:null, t:0, history:[], maxT:0, stepMin:10, fuelLeft:0, fuelStart:0, feed:8, walk:{h2:0,co:0,tar:0,lhv:0} };
+
+function makeLine(id, label, color, yTitle){
+  return new Chart($id(id).getContext("2d"), {
+    type:"line",
+    data:{ labels:[], datasets:[{ label, data:[], borderColor:color, tension:0.25, pointRadius:0, borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ticks:{color:"#9a937f", maxTicksLimit:8}, grid:{color:"#3a4030"}, title:{display:true,text:"Time (hours)",color:"#9a937f"} },
+        y:{ ticks:{color:"#9a937f"}, grid:{color:"#3a4030"}, title:{display:true,text:yTitle,color:"#9a937f"} }
+      },
+      plugins:{ legend:{labels:{color:"#9a937f"}}, zoom:zoomOpts }
     }
-
-    function updateTotalFuelNote() {
-      const feed = +document.getElementById('feed').value;
-      const hrs = +document.getElementById('opHours').value;
-      document.getElementById('totalFuelVal').textContent = (feed * hrs).toFixed(1);
+  });
+}
+function destroyTrends(){ Object.keys(trendCharts).forEach(k=>{ if(trendCharts[k]){ trendCharts[k].destroy(); trendCharts[k]=null; }}); }
+function initTrends(){
+  destroyTrends();
+  trendCharts.fuel=makeLine("trendFuel","Fuel remaining","#8aaa6e","Fuel remaining (lb dry)");
+  trendCharts.lhv=makeLine("trendLHV","LHV","#c9a227","LHV (Btu/scf)");
+  trendCharts.tar=makeLine("trendTar","Tar","#d08a3a","Tar (mg/Nm³)");
+  trendCharts.power=makeLine("trendPower","Shaft power","#ece7d8","Shaft power (hp)");
+  trendCharts.comp=new Chart($id("trendComp").getContext("2d"), {
+    type:"line",
+    data:{ labels:[], datasets:[
+      {label:"H₂ %", data:[], borderColor:"#9a937f", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"CO %", data:[], borderColor:"#c9a227", tension:0.25, pointRadius:0, borderWidth:2}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ticks:{color:"#9a937f", maxTicksLimit:8}, grid:{color:"#3a4030"}, title:{display:true,text:"Time (hours)",color:"#9a937f"} },
+        y:{ ticks:{color:"#9a937f"}, grid:{color:"#3a4030"}, title:{display:true,text:"Volume %",color:"#9a937f"} }
+      },
+      plugins:{ legend:{labels:{color:"#9a937f"}}, zoom:zoomOpts }
     }
-
-    function syncHours(fromOp) {
-      if (fromOp) {
-        const v = document.getElementById('opHours').value;
-        document.getElementById('hours').value = v;
-        document.getElementById('hoursVal').textContent = v;
-        document.getElementById('opHoursVal').textContent = v;
-      } else {
-        const v = document.getElementById('hours').value;
-        document.getElementById('opHours').value = v;
-        document.getElementById('opHoursVal').textContent = v;
-        document.getElementById('hoursVal').textContent = v;
-      }
-      updateTotalFuelNote();
+  });
+  trendCharts.combined=new Chart($id("trendCombined").getContext("2d"), {
+    type:"line",
+    data:{ labels:[], datasets:[
+      {label:"Fuel remaining", data:[], borderColor:"#8aaa6e", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"LHV", data:[], borderColor:"#c9a227", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"Tar (inv)", data:[], borderColor:"#d08a3a", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"Shaft power", data:[], borderColor:"#ece7d8", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"H₂", data:[], borderColor:"#9a937f", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"CO", data:[], borderColor:"#c45c3e", tension:0.25, pointRadius:0, borderWidth:2}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ticks:{color:"#9a937f", maxTicksLimit:10}, grid:{color:"#3a4030"}, title:{display:true,text:"Time (hours)",color:"#9a937f"} },
+        y:{ min:0, max:100, ticks:{color:"#9a937f"}, grid:{color:"#3a4030"}, title:{display:true,text:"Normalized % of run max",color:"#9a937f"} }
+      },
+      plugins:{ legend:{labels:{color:"#9a937f"}}, zoom:zoomOpts }
     }
+  });
+}
+function norm(arr){ const m=Math.max(...arr,1e-9); return arr.map(v=>v/m*100); }
+function updateTrendCharts(){
+  const L=sim.history.map(h=>h.t.toFixed(2));
+  const fuel=sim.history.map(h=>h.fuelLeft), lhv=sim.history.map(h=>h.LHV), tar=sim.history.map(h=>h.tar);
+  const pow=sim.history.map(h=>h.power), h2=sim.history.map(h=>h.H2), co=sim.history.map(h=>h.CO);
+  trendCharts.fuel.data.labels=L; trendCharts.fuel.data.datasets[0].data=fuel; trendCharts.fuel.update("none");
+  trendCharts.lhv.data.labels=L; trendCharts.lhv.data.datasets[0].data=lhv; trendCharts.lhv.update("none");
+  trendCharts.tar.data.labels=L; trendCharts.tar.data.datasets[0].data=tar; trendCharts.tar.update("none");
+  trendCharts.power.data.labels=L; trendCharts.power.data.datasets[0].data=pow; trendCharts.power.update("none");
+  trendCharts.comp.data.labels=L; trendCharts.comp.data.datasets[0].data=h2; trendCharts.comp.data.datasets[1].data=co; trendCharts.comp.update("none");
+  const tarMax=Math.max(...tar,1);
+  trendCharts.combined.data.labels=L;
+  trendCharts.combined.data.datasets[0].data=norm(fuel);
+  trendCharts.combined.data.datasets[1].data=norm(lhv);
+  trendCharts.combined.data.datasets[2].data=tar.map(v=>((tarMax-v)/tarMax)*100);
+  trendCharts.combined.data.datasets[3].data=norm(pow);
+  trendCharts.combined.data.datasets[4].data=norm(h2);
+  trendCharts.combined.data.datasets[5].data=norm(co);
+  trendCharts.combined.update("none");
+}
 
-    function startupFactor(t) {
-      if (t === undefined) return 1;
-      const k = 8, mid = 0.28;
-      return 1 / (1 + Math.exp(-k * (t - mid)));
-    }
+function stepTrends(){
+  if(!sim.running) return;
+  const d=compute();
+  const dt=sim.stepMin/60;
+  sim.walk.h2=clamp(sim.walk.h2+(Math.random()-0.5)*0.35,-2.5,2.5);
+  sim.walk.co=clamp(sim.walk.co+(Math.random()-0.5)*0.3,-2.2,2.2);
+  sim.walk.tar=clamp(sim.walk.tar+(Math.random()-0.5)*2.5,-18,18);
+  sim.walk.lhv=clamp(sim.walk.lhv+(Math.random()-0.5)*0.8,-6,6);
+  const ff=fuelFactor(sim.fuelLeft, sim.fuelStart);
+  let gas={H2:0,CO:0,CH4:0,CO2:0,N2:100,LHV:0,tar:0};
+  let power=0;
+  if(ff>0.001){
+    gas=gasComp(d.fuel, d.inp.moisture, d.inp.er, d.sizes.family, sim.t, sim.walk);
+    gas.H2*=ff; gas.CO*=ff; gas.CH4*=ff; gas.LHV*=ff; gas.tar=Math.round(gas.tar*(0.3+0.7*ff));
+    const yld=Math.max(25, d.fuel.yield*(1-Math.max(0,d.inp.moisture-12)*0.012));
+    const scfm=(sim.feed*yld/60)*ff;
+    power=(scfm*gas.LHV*60*ENG_EFF)/BTU_HP;
+  }
+  sim.history.push({ t:+sim.t.toFixed(2), fuelLeft:+sim.fuelLeft.toFixed(2), LHV:+gas.LHV.toFixed(1), tar:gas.tar, power:+power.toFixed(2), H2:+gas.H2.toFixed(2), CO:+gas.CO.toFixed(2) });
+  if(sim.history.length>600) sim.history.shift();
+  updateTrendCharts();
+  $id("simStatus").textContent="Running… t = "+sim.t.toFixed(2)+" h / "+sim.maxT+" h · Fuel left "+sim.fuelLeft.toFixed(1)+" lb · "+sim.feed+" lb/h";
+  sim.fuelLeft=Math.max(0, sim.fuelLeft-sim.feed*dt);
+  if(sim.fuelLeft<=0.001){
+    sim.history.push({ t:+(sim.t+dt).toFixed(2), fuelLeft:0, LHV:0, tar:0, power:0, H2:0, CO:0 });
+    updateTrendCharts(); stopTrends();
+    $id("simStatus").textContent="Fuel exhausted near t = "+(sim.t+dt).toFixed(2)+" h. You can save CSV.";
+    return;
+  }
+  sim.t+=dt;
+  if(sim.t>sim.maxT+0.001){
+    stopTrends();
+    $id("simStatus").textContent="Finished "+sim.maxT+" h. Fuel remaining "+sim.fuelLeft.toFixed(1)+" lb. You can save CSV.";
+    return;
+  }
+  sim.timer=setTimeout(stepTrends, 90);
+}
 
-    function fuelFactor(fuelLeft, fuelStart) {
-      if (fuelStart <= 0) return 0;
-      const frac = fuelLeft / fuelStart;
-      if (frac > 0.12) return 1;
-      const x = frac / 0.12;
-      return Math.max(0, x * x * (3 - 2 * x));
-    }
+function startTrends(){
+  if(sim.running) return;
+  resetTrends(false); initTrends();
+  const d=compute();
+  sim.maxT=+$id("hours").value;
+  $id("opHours").value=sim.maxT; $id("opHoursVal").textContent=sim.maxT;
+  sim.stepMin=+$id("timestep").value;
+  sim.feed=d.sizes.feed;
+  sim.t=0; sim.fuelStart=sim.feed*sim.maxT; sim.fuelLeft=sim.fuelStart;
+  sim.history=[]; sim.walk={h2:0,co:0,tar:0,lhv:0}; sim.running=true;
+  $id("btnStart").disabled=true; $id("btnStop").disabled=false; $id("btnSave").disabled=true;
+  $id("simStatus").textContent="Starting with "+sim.fuelLeft.toFixed(1)+" lb at "+sim.feed+" lb/h for "+sim.maxT+" h…";
+  stepTrends();
+}
+function stopTrends(){
+  sim.running=false; clearTimeout(sim.timer);
+  $id("btnStart").disabled=false; $id("btnStop").disabled=true;
+  $id("btnSave").disabled=!(sim.history.length && !sim.running);
+  if(sim.t<sim.maxT && sim.fuelLeft>0.001)
+    $id("simStatus").textContent="Paused at t = "+sim.t.toFixed(2)+" h. You can save CSV.";
+}
+function resetTrends(upd){
+  stopTrends(); sim.t=0; sim.history=[]; sim.fuelLeft=0; sim.fuelStart=0;
+  destroyTrends(); $id("btnSave").disabled=true;
+  if(upd!==false) $id("simStatus").textContent="Reset. Ready to start.";
+}
+function resetZoom(){ Object.values(trendCharts).forEach(c=>{ if(c && c.resetZoom) c.resetZoom(); }); }
+function saveData(){
+  if(!sim.history.length) return;
+  const header="time_h,fuel_remaining_lb,LHV_Btu_per_scf,tar_mg_per_Nm3,shaft_power_hp,H2_pct,CO_pct";
+  const rows=sim.history.map(h=>[h.t,h.fuelLeft,h.LHV,h.tar,h.power,h.H2,h.CO].join(","));
+  const csv=["# Hearth Lab trend export", header].concat(rows).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="gasifier_trends_"+Date.now()+".csv";
+  a.click(); URL.revokeObjectURL(a.href);
+  $id("simStatus").textContent="CSV saved ("+sim.history.length+" points).";
+}
 
-    function equilibrium(fuel, moist, ER, gtype, tHours, fuelLeft, fuelStart) {
-      const su = startupFactor(tHours);
-      const ff = (fuelLeft !== undefined && fuelStart !== undefined)
-        ? fuelFactor(fuelLeft, fuelStart) : 1;
-      if (ff <= 0.001) {
-        return { H2: 0, CO: 0, CH4: 0, CO2: 0, N2: 100, LHV: 0, tar: 0 };
-      }
-
-      let H2 = 16 + (fuel.H * 80) - (moist * 0.15);
-      let CO = 20 + (fuel.C * 15) - (moist * 0.25);
-      let CH4 = 2.5 - (ER - 0.25) * 4;
-      let CO2 = 11 + (moist * 0.2);
-      let N2 = 48;
-
-      if (ER < 0.25) { H2 += 2; CO += 1; CO2 -= 1; }
-      if (ER > 0.35) { H2 -= 3; CO -= 2; CO2 += 2; N2 += 2; }
-      if (moist > 20) { H2 += 1; CO -= 2; CO2 += 2; }
-      if (gtype === 'updraft') { CH4 += 1.5; CO -= 2; H2 -= 1; }
-      if (gtype === 'fema') { CO -= 1; H2 -= 0.5; }
-
-      H2 = H2 * (0.4 + 0.6 * su);
-      CO = CO * (0.45 + 0.55 * su);
-      CH4 = CH4 * su;
-      CO2 = CO2 + (1 - su) * 8;
-
-      if (tHours !== undefined) {
-        sim.walkH2 += (Math.random() - 0.5) * 0.35;
-        sim.walkCO += (Math.random() - 0.5) * 0.3;
-        sim.walkTar += (Math.random() - 0.5) * 2.5;
-        sim.walkLHV += (Math.random() - 0.5) * 0.8;
-        sim.walkH2 = Math.max(-2.5, Math.min(2.5, sim.walkH2));
-        sim.walkCO = Math.max(-2.2, Math.min(2.2, sim.walkCO));
-        sim.walkTar = Math.max(-18, Math.min(18, sim.walkTar));
-        sim.walkLHV = Math.max(-6, Math.min(6, sim.walkLHV));
-        H2 += sim.walkH2 + (Math.random() - 0.5) * 0.8;
-        CO += sim.walkCO + (Math.random() - 0.5) * 0.7;
-      }
-
-      H2 = Math.max(3, H2);
-      CO = Math.max(5, CO);
-      CH4 = Math.max(0.3, CH4);
-      CO2 = Math.max(4, CO2);
-
-      let sum = H2 + CO + CH4 + CO2 + N2;
-      H2 *= 100 / sum; CO *= 100 / sum; CH4 *= 100 / sum; CO2 *= 100 / sum;
-      N2 = 100 - (H2 + CO + CH4 + CO2);
-
-      let LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
-      if (tHours !== undefined) LHV += sim.walkLHV;
-
-      let tar = 100 * fuel.tarF;
-      if (moist > 20) tar *= 1.5;
-      if (moist > 30) tar *= 1.4;
-      if (gtype === 'updraft') tar *= 3;
-      if (gtype === 'fema') tar *= 1.4;
-      if (ER < 0.22 || ER > 0.40) tar *= 1.6;
-      if (tHours !== undefined) {
-        const tarStartup = 1 + 1.4 * Math.exp(-tHours / 0.22);
-        tar *= tarStartup;
-        tar += sim.walkTar;
-        if (tHours > 2) tar *= (1 + Math.min(0.12, (tHours - 2) * 0.008));
-      }
-      tar = Math.max(20, tar);
-
-      H2 *= ff; CO *= ff; CH4 *= ff; LHV *= ff; tar = tar * (0.3 + 0.7 * ff);
-
-      return { H2, CO, CH4, CO2, N2, LHV, tar: Math.round(tar) };
-    }
-
-    function runSim() {
-      const fuel = getBlendFuel();
-      const moist = +document.getElementById('moisture').value;
-      const ER = +document.getElementById('er').value;
-      const gtype = document.getElementById('gtype').value;
-      const feed = +document.getElementById('feed').value;
-      const Bg = +document.getElementById('hearthLoad').value;
-
-      document.getElementById('moistVal').textContent = moist;
-      document.getElementById('erVal').textContent = ER.toFixed(2);
-      document.getElementById('feedVal').textContent = feed;
-      document.getElementById('sizeVal').textContent = document.getElementById('psize').value;
-      document.getElementById('blendVal').textContent = document.getElementById('blend').value;
-      document.getElementById('fuelNote').textContent = fuel.note;
-      updateTotalFuelNote();
-
-      const gas = equilibrium(fuel, moist, ER, gtype);
-      const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
-      const scfh = feed * Math.max(25, yield);
-      const scfm = scfh / 60;
-      const energy = scfh * gas.LHV;
-      const throatArea = scfh / Bg;
-      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
-      const recDia = Math.max(6, Math.ceil(throatDia + (gtype === 'imbert' ? 4 : 2)));
-      const shaftHp = (scfm * gas.LHV * 0.22) / 2545;
-
-      document.getElementById('metrics').innerHTML =
-        '<div class="metric cyan"><div class="m-label">Gas flow</div><div class="m-val">' + scfm.toFixed(1) + '</div><div class="m-unit">scfm</div></div>' +
-        '<div class="metric"><div class="m-label">LHV</div><div class="m-val">' + Math.round(gas.LHV) + '</div><div class="m-unit">Btu/scf</div></div>' +
-        '<div class="metric"><div class="m-label">Energy</div><div class="m-val">' + Math.round(energy/1000) + '</div><div class="m-unit">kBtu/h</div></div>' +
-        '<div class="metric orange"><div class="m-label">Est. tar</div><div class="m-val">' + gas.tar + '</div><div class="m-unit">mg/Nm³</div></div>' +
-        '<div class="metric purple"><div class="m-label">Shaft power</div><div class="m-val">' + shaftHp.toFixed(1) + '</div><div class="m-unit">hp</div></div>' +
-        '<div class="metric"><div class="m-label">H₂</div><div class="m-val">' + gas.H2.toFixed(1) + '</div><div class="m-unit">%</div></div>' +
-        '<div class="metric"><div class="m-label">CO</div><div class="m-val">' + gas.CO.toFixed(1) + '</div><div class="m-unit">%</div></div>' +
-        '<div class="metric"><div class="m-label">CH₄</div><div class="m-val">' + gas.CH4.toFixed(1) + '</div><div class="m-unit">%</div></div>';
-
-      document.getElementById('compBars').innerHTML =
-        '<div class="comp-bar">' +
-        '<div class="comp-seg" style="width:' + gas.H2 + '%;background:#60a5fa">H₂</div>' +
-        '<div class="comp-seg" style="width:' + gas.CO + '%;background:#fbbf24">CO</div>' +
-        '<div class="comp-seg" style="width:' + gas.CH4 + '%;background:#34d399">CH₄</div>' +
-        '<div class="comp-seg" style="width:' + gas.CO2 + '%;background:#a78bfa">CO₂</div>' +
-        '<div class="comp-seg" style="width:' + gas.N2 + '%;background:#6b7280">N₂</div></div>';
-
-      const ctx = document.getElementById('compChart').getContext('2d');
-      if (compChart) compChart.destroy();
-      compChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: ['H₂','CO','CH₄','CO₂','N₂'], datasets: [{ data: [gas.H2,gas.CO,gas.CH4,gas.CO2,gas.N2], backgroundColor: ['#60a5fa','#fbbf24','#34d399','#a78bfa','#6b7280'] }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#a1a1aa' } } } }
-      });
-
-      let status = '';
-      if (moist > 20) status = '<div class="warn">Moisture >20% raises tar and lowers heating value.</div>';
-      else if (gas.tar > 150) status = '<div class="warn">Estimated tar is high. Prefer dry hardwood or charcoal and Imbert design.</div>';
-      else status = '<div class="ok">Numbers look reasonable for a well-insulated unit.</div>';
-      document.getElementById('status').innerHTML = status;
-
-      document.getElementById('guidance').style.display = 'block';
-      document.getElementById('guidance').textContent = 'DIY note: Expect 25–40% engine derate vs gasoline. Keep particle size uniform. Tar after cooler+filter should stay under ~100 mg/Nm³ for engines.';
-
-      document.getElementById('sizeMetrics').innerHTML =
-        '<div class="metric"><div class="m-label">Throat dia</div><div class="m-val">' + throatDia.toFixed(2) + '</div><div class="m-unit">in</div></div>' +
-        '<div class="metric"><div class="m-label">Reactor ID</div><div class="m-val">' + recDia + '</div><div class="m-unit">in</div></div>' +
-        '<div class="metric cyan"><div class="m-label">Air approx</div><div class="m-val">' + (feed*1.25/0.076/60).toFixed(1) + '</div><div class="m-unit">cfm</div></div>' +
-        '<div class="metric"><div class="m-label">Yield used</div><div class="m-val">' + yield.toFixed(0) + '</div><div class="m-unit">scf/lb</div></div>';
-    }
-
-    function compareFuels() {
-      const moist = +document.getElementById('moisture').value;
-      const ER = +document.getElementById('er').value;
-      const gtype = document.getElementById('gtype').value;
-      const tbody = document.querySelector('#compareTable tbody');
-      tbody.innerHTML = '';
-      ['hardwood','softwood','charcoal','corn','pellets','sawdust'].forEach(k => {
-        const f = FUELS[k];
-        const g = equilibrium(f, moist, ER, gtype);
-        const note = g.tar > 150 ? 'High tar' : (g.LHV > 150 ? 'Strong' : 'Typical');
-        tbody.innerHTML += '<tr><td>' + f.name + '</td><td>' + Math.round(g.LHV) + '</td><td>' + g.H2.toFixed(1) + '</td><td>' + g.CO.toFixed(1) + '</td><td>' + g.tar + '</td><td>' + note + '</td></tr>';
-      });
-      document.getElementById('compareCard').style.display = 'block';
-    }
-
-    function makeTrendChart(canvasId, seriesLabel, color, yTitle) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      return new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: seriesLabel, data: [], borderColor: color, tension: 0.25, pointRadius: 0, borderWidth: 2 }] },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: {
-            x: {
-              ticks: { color: '#a1a1aa', maxTicksLimit: 8 },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
-            },
-            y: {
-              ticks: { color: '#a1a1aa' },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: yTitle, color: '#a1a1aa' }
-            }
-          },
-          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
-        }
-      });
-    }
-
-    function destroyTrendCharts() {
-      Object.keys(trendCharts).forEach(k => {
-        if (trendCharts[k]) { trendCharts[k].destroy(); trendCharts[k] = null; }
-      });
-    }
-
-    function initTrendCharts() {
-      destroyTrendCharts();
-      trendCharts.fuel  = makeTrendChart('trendFuel',  'Fuel remaining', '#10b981', 'Fuel remaining (lb dry)');
-      trendCharts.lhv   = makeTrendChart('trendLHV',   'LHV',           '#fbbf24', 'LHV (Btu/scf)');
-      trendCharts.tar   = makeTrendChart('trendTar',   'Tar',           '#f59e0b', 'Tar (mg/Nm³)');
-      trendCharts.power = makeTrendChart('trendPower', 'Shaft power',   '#8b5cf6', 'Shaft power (hp)');
-      trendCharts.comp  = new Chart(document.getElementById('trendComp').getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'H₂ %', data: [], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'CO %', data: [], borderColor: '#fbbf24', tension: 0.25, pointRadius: 0, borderWidth: 2 }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 8 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Time (hours)', color: '#a1a1aa' } },
-            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' }, title: { display: true, text: 'Volume %', color: '#a1a1aa' } }
-          },
-          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
-        }
-      });
-
-      trendCharts.combined = new Chart(document.getElementById('trendCombined').getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'Fuel remaining', data: [], borderColor: '#10b981', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'LHV', data: [], borderColor: '#fbbf24', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'Tar (inv)', data: [], borderColor: '#f59e0b', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'Shaft power', data: [], borderColor: '#8b5cf6', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'H₂', data: [], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'CO', data: [], borderColor: '#f472b6', tension: 0.25, pointRadius: 0, borderWidth: 2 }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 10 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Time (hours)', color: '#a1a1aa' } },
-            y: { min: 0, max: 100, ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' }, title: { display: true, text: 'Normalized % of run max', color: '#a1a1aa' } }
-          },
-          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
-        }
-      });
-    }
-
-    function normSeries(arr) {
-      if (!arr.length) return [];
-      const max = Math.max(...arr, 1e-9);
-      return arr.map(v => (v / max) * 100);
-    }
-
-    function updateTrendCharts() {
-      const labels = sim.history.map(h => h.t.toFixed(2));
-      const fuelA = sim.history.map(h => h.fuelLeft);
-      const lhvA = sim.history.map(h => h.LHV);
-      const tarA = sim.history.map(h => h.tar);
-      const powA = sim.history.map(h => h.power);
-      const h2A = sim.history.map(h => h.H2);
-      const coA = sim.history.map(h => h.CO);
-
-      trendCharts.fuel.data.labels = labels;
-      trendCharts.fuel.data.datasets[0].data = fuelA;
-      trendCharts.fuel.update('none');
-      trendCharts.lhv.data.labels = labels;
-      trendCharts.lhv.data.datasets[0].data = lhvA;
-      trendCharts.lhv.update('none');
-      trendCharts.tar.data.labels = labels;
-      trendCharts.tar.data.datasets[0].data = tarA;
-      trendCharts.tar.update('none');
-      trendCharts.power.data.labels = labels;
-      trendCharts.power.data.datasets[0].data = powA;
-      trendCharts.power.update('none');
-      trendCharts.comp.data.labels = labels;
-      trendCharts.comp.data.datasets[0].data = h2A;
-      trendCharts.comp.data.datasets[1].data = coA;
-      trendCharts.comp.update('none');
-
-      const tarMax = Math.max(...tarA, 1);
-      const tarInv = tarA.map(v => ((tarMax - v) / tarMax) * 100);
-
-      trendCharts.combined.data.labels = labels;
-      trendCharts.combined.data.datasets[0].data = normSeries(fuelA);
-      trendCharts.combined.data.datasets[1].data = normSeries(lhvA);
-      trendCharts.combined.data.datasets[2].data = tarInv;
-      trendCharts.combined.data.datasets[3].data = normSeries(powA);
-      trendCharts.combined.data.datasets[4].data = normSeries(h2A);
-      trendCharts.combined.data.datasets[5].data = normSeries(coA);
-      trendCharts.combined.update('none');
-    }
-
-    function setSaveEnabled() {
-      document.getElementById('btnSave').disabled = !(sim.history.length > 0 && !sim.running);
-    }
-
-    function resetZoom() {
-      Object.values(trendCharts).forEach(c => {
-        if (c && typeof c.resetZoom === 'function') c.resetZoom();
-      });
-    }
-
-    function stepTrends() {
-      if (!sim.running) return;
-      const fuel = getBlendFuel();
-      const moist = +document.getElementById('moisture').value;
-      const ER = +document.getElementById('er').value;
-      const gtype = document.getElementById('gtype').value;
-      const feed = sim.feedRate;
-      const dt = sim.stepMin / 60;
-
-      const gas = equilibrium(fuel, moist, ER, gtype, sim.t, sim.fuelLeft, sim.fuelStart);
-      const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
-      const ff = fuelFactor(sim.fuelLeft, sim.fuelStart);
-      const scfh = feed * Math.max(25, yield) * ff;
-      const scfm = scfh / 60;
-      const power = (scfm * gas.LHV * 0.22) / 2545;
-
-      sim.history.push({
-        t: sim.t,
-        LHV: +gas.LHV.toFixed(1),
-        tar: gas.tar,
-        power: +power.toFixed(2),
-        H2: +gas.H2.toFixed(2),
-        CO: +gas.CO.toFixed(2),
-        fuelLeft: +sim.fuelLeft.toFixed(3)
-      });
-      if (sim.history.length > 600) sim.history.shift();
-
-      updateTrendCharts();
-      document.getElementById('simStatus').textContent =
-        'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT +
-        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb · Rate: ' + feed + ' lb/h';
-
-      sim.fuelLeft = Math.max(0, sim.fuelLeft - feed * dt);
-
-      if (sim.fuelLeft <= 0.001) {
-        sim.history.push({ t: +(sim.t + dt).toFixed(3), LHV: 0, tar: 0, power: 0, H2: 0, CO: 0, fuelLeft: 0 });
-        updateTrendCharts();
-        stopTrends();
-        document.getElementById('simStatus').textContent =
-          'Fuel exhausted near t = ' + (sim.t + dt).toFixed(2) + ' h. You can Save Data.';
-        return;
-      }
-
-      sim.t += dt;
-      if (sim.t > sim.maxT + 0.001) {
-        stopTrends();
-        document.getElementById('simStatus').textContent =
-          'Finished ' + sim.maxT + ' h run. Fuel remaining: ' + sim.fuelLeft.toFixed(1) + ' lb. You can Save Data.';
-        return;
-      }
-      sim.timer = setTimeout(stepTrends, 90);
-    }
-
-    function startTrends() {
-      if (sim.running) return;
-      resetTrends(false);
-      initTrendCharts();
-
-      sim.maxT = +document.getElementById('opHours').value;
-      document.getElementById('hours').value = sim.maxT;
-      document.getElementById('hoursVal').textContent = sim.maxT;
-      sim.stepMin = +document.getElementById('timestep').value;
-      sim.feedRate = +document.getElementById('feed').value;
-      sim.t = 0;
-      sim.fuelStart = sim.feedRate * sim.maxT;
-      sim.fuelLeft = sim.fuelStart;
-      sim.history = [];
-      sim.walkH2 = 0; sim.walkCO = 0; sim.walkTar = 0; sim.walkLHV = 0;
-
-      sim.running = true;
-      document.getElementById('btnStart').disabled = true;
-      document.getElementById('btnStop').disabled = false;
-      document.getElementById('btnSave').disabled = true;
-      document.getElementById('simStatus').textContent =
-        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb at ' + sim.feedRate + ' lb/h for ' + sim.maxT + ' h…';
-      stepTrends();
-    }
-
-    function stopTrends() {
-      sim.running = false;
-      clearTimeout(sim.timer);
-      document.getElementById('btnStart').disabled = false;
-      document.getElementById('btnStop').disabled = true;
-      setSaveEnabled();
-      if (sim.t < sim.maxT && sim.fuelLeft > 0.001)
-        document.getElementById('simStatus').textContent =
-          'Paused at t = ' + sim.t.toFixed(2) + ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb. You can Save Data.';
-    }
-
-    function resetTrends(updateStatus) {
-      stopTrends();
-      sim.t = 0;
-      sim.history = [];
-      sim.fuelLeft = 0;
-      sim.fuelStart = 0;
-      sim.walkH2 = 0; sim.walkCO = 0; sim.walkTar = 0; sim.walkLHV = 0;
-      destroyTrendCharts();
-      document.getElementById('btnSave').disabled = true;
-      if (updateStatus !== false)
-        document.getElementById('simStatus').textContent = 'Reset. Ready to start.';
-    }
-
-    function saveData() {
-      if (!sim.history.length) return;
-      const fuelName = getBlendFuel().name.replace(/\s+/g, '_');
-      const gtype = document.getElementById('gtype').value;
-      const moist = document.getElementById('moisture').value;
-      const header = 'time_h,fuel_remaining_lb,LHV_Btu_per_scf,tar_mg_per_Nm3,shaft_power_hp,H2_pct,CO_pct';
-      const rows = sim.history.map(h =>
-        [h.t, h.fuelLeft, h.LHV, h.tar, h.power, h.H2, h.CO].join(',')
-      );
-      const meta = [
-        '# Home Wood Gasifier trend export',
-        '# fuel=' + fuelName,
-        '# gasifier_type=' + gtype,
-        '# moisture_pct_wb=' + moist,
-        '# feed_rate_lb_per_h=' + sim.feedRate,
-        '# operation_hours=' + sim.maxT,
-        '# points=' + sim.history.length,
-        header
-      ];
-      const csv = meta.concat(rows).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
-      a.href = url;
-      a.download = 'gasifier_trends_' + fuelName + '_' + stamp + '.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      document.getElementById('simStatus').textContent =
-        'CSV saved (' + sim.history.length + ' points).';
-    }
-
-    document.getElementById('opHours').addEventListener('input', () => syncHours(true));
-    document.getElementById('hours').addEventListener('input', () => syncHours(false));
-    document.getElementById('feed').addEventListener('input', updateTotalFuelNote);
-
-    ['moisture','er','feed','psize','blend'].forEach(id => {
-      document.getElementById(id).addEventListener('input', () => {
-        const map = { moisture:'moistVal', er:'erVal', feed:'feedVal', psize:'sizeVal', blend:'blendVal' };
-        const el = document.getElementById(map[id]);
-        el.textContent = id === 'er' ? (+document.getElementById(id).value).toFixed(2) : document.getElementById(id).value;
-      });
-    });
-
-    updateTotalFuelNote();
-    runSim();
-  </script>
+["endUse","fuel1","fuel2","hearthBand","familyOverride","disp","rpm"].forEach(id=>$id(id).addEventListener("change", render));
+["targetHp","opHours","blend","moisture","psize","er","maxReactorIn"].forEach(id=>$id(id).addEventListener("input", render));
+$id("hours").addEventListener("input", ()=>{ $id("hoursVal").textContent=$id("hours").value; $id("opHours").value=$id("hours").value; $id("opHoursVal").textContent=$id("hours").value; render(); });
+render();
+</script>
 </body>
 </html>
