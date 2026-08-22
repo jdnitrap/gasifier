@@ -1,6 +1,6 @@
 ---
 name: wood-gasifier
-description: Use for designing, sizing, building, operating, cleaning, troubleshooting, and integrating small-scale wood or biomass gasifiers for home energy systems. Covers Imbert, stratified, FEMA-style, Missouri open-core, cross-flow, propane-tank and other DIY builds, materials and fabrication, gas cleaning, tar cracking and management, performance data, fuel requirements, biochar and activated charcoal, safety, engine or Stirling integration, hybrid systems, efficiency (cold-gas vs ideal), turndown vs moisture and insulation, time-series burn simulation, library patterns from Gengas SERI Reed FEMA Missouri Drive On Wood Kaupp, common DIY failure modes, model limits, fuel prep, startup shutdown, maintenance, and notes on syngas-to-liquids. Trigger on hearth load, superficial velocity, throat diameter, nozzle sizing, producer gas data, DIY gasifier construction, tar issues, bridging, biochar, activated charcoal, wood gas to liquid, Hearth Lab, or home hybrid energy systems using wood gas. All measurements use the English (US customary) system.
+description: Use for designing, sizing, building, operating, cleaning, troubleshooting, and integrating small-scale wood or biomass gasifiers for home energy systems. Covers Imbert, stratified, FEMA-style, Missouri open-core, cross-flow, propane-tank and other DIY builds, materials and fabrication, gas cleaning, tar cracking and management, performance data, fuel requirements, biochar and activated charcoal, safety, engine or Stirling integration, hybrid systems, efficiency (cold-gas vs ideal), turndown vs moisture and insulation, time-series burn simulation, library patterns from Gengas SERI Reed FEMA Missouri Drive On Wood Kaupp, naming aliases and related processes (producer gas, gengas, pyrolysis vs gasification, Stirling product names), common DIY failure modes, model limits, fuel prep, startup shutdown, maintenance, and notes on syngas-to-liquids. Trigger on hearth load, superficial velocity, throat diameter, nozzle sizing, producer gas data, DIY gasifier construction, tar issues, bridging, biochar, activated charcoal, wood gas to liquid, Hearth Lab, or home hybrid energy systems using wood gas. All measurements use the English (US customary) system.
 ---
 
 # Wood Gasifier
@@ -9,30 +9,31 @@ description: Use for designing, sizing, building, operating, cleaning, troublesh
 1. [Overview](#overview)
 2. [Model Limits — What This Does Not Do](#model-limits--what-this-does-not-do)
 3. [Library Patterns (what the documents teach)](#library-patterns-what-the-documents-teach)
-4. [Design and Sizing](#design-and-sizing)
-5. [Materials Selection Guide](#materials-selection-guide)
-6. [Fuel Prep Checklist](#fuel-prep-checklist)
-7. [Gas Cleaning / Filtration](#gas-cleaning--filtration)
-8. [Performance, Fuel & Gas Data](#performance-fuel--gas-data)
-9. [Efficiency — Real vs Ideal](#efficiency--real-vs-ideal)
-10. [Turndown, Moisture & Insulation](#turndown-moisture--insulation)
-11. [Tar Management & Cracking](#tar-management--cracking)
-12. [Biochar & Activated Charcoal](#biochar--activated-charcoal)
-13. [Syngas-to-Liquids](#syngas-to-liquids)
-14. [Safety & Emissions](#safety--emissions)
-15. [Engine, Stirling & Generator Integration](#engine-stirling--generator-integration)
-16. [Stirling Thermal Matching](#stirling-thermal-matching)
-17. [Hybrid System Integration](#hybrid-system-integration)
-18. [Time-Series / Simulator Behavior](#time-series--simulator-behavior)
-19. [Startup & Shutdown Checklist](#startup--shutdown-checklist)
-20. [Common DIY Failure Modes](#common-diy-failure-modes)
-21. [Troubleshooting](#troubleshooting)
-22. [Maintenance Schedule](#maintenance-schedule)
-23. [Build Skill Level & Time Guide](#build-skill-level--time-guide)
-24. [When Answering](#when-answering)
-25. [User Artifacts & Tools](#user-artifacts--tools)
-26. [References](#references)
-27. [Skill Version / Change Log](#skill-version--change-log)
+4. [Naming, Aliases & Related Processes](#naming-aliases--related-processes)
+5. [Design and Sizing](#design-and-sizing)
+6. [Materials Selection Guide](#materials-selection-guide)
+7. [Fuel Prep Checklist](#fuel-prep-checklist)
+8. [Gas Cleaning / Filtration](#gas-cleaning--filtration)
+9. [Performance, Fuel & Gas Data](#performance-fuel--gas-data)
+10. [Efficiency — Real vs Ideal](#efficiency--real-vs-ideal)
+11. [Turndown, Moisture & Insulation](#turndown-moisture--insulation)
+12. [Tar Management & Cracking](#tar-management--cracking)
+13. [Biochar & Activated Charcoal](#biochar--activated-charcoal)
+14. [Syngas-to-Liquids](#syngas-to-liquids)
+15. [Safety & Emissions](#safety--emissions)
+16. [Engine, Stirling & Generator Integration](#engine-stirling--generator-integration)
+17. [Stirling Thermal Matching](#stirling-thermal-matching)
+18. [Hybrid System Integration](#hybrid-system-integration)
+19. [Time-Series / Simulator Behavior](#time-series--simulator-behavior)
+20. [Startup & Shutdown Checklist](#startup--shutdown-checklist)
+21. [Common DIY Failure Modes](#common-diy-failure-modes)
+22. [Troubleshooting](#troubleshooting)
+23. [Maintenance Schedule](#maintenance-schedule)
+24. [Build Skill Level & Time Guide](#build-skill-level--time-guide)
+25. [When Answering](#when-answering)
+26. [User Artifacts & Tools](#user-artifacts--tools)
+27. [References](#references)
+28. [Skill Version / Change Log](#skill-version--change-log)
 
 ---
 
@@ -93,6 +94,56 @@ Synthesized from the full GitHub `jdnitrap/gasifier/uploads` pass (unique non-zi
 12. **Turndown is a fuel + insulation problem** — wet + cold walls collapse part-load stability.
 13. **Hearth Lab path matches the strong spine** — power → family SV → steel → cleanup → end-use.
 14. **Scan-limited sources** — FEMA drawings, inverted-V, valve packs need manual dimension checks.
+
+---
+
+## Naming, Aliases & Related Processes
+
+Gasifier literature and marketing use many overlapping names. Treat these as the **same core concept** unless geometry or duty clearly differs.
+
+### Common aliases for wood / biomass gasifiers
+| Name you may see | Usually means | Notes |
+|------------------|---------------|-------|
+| Wood gasifier / woodgas unit | Downdraft or stratified gasifier | Default DIY meaning |
+| Producer gas generator / gengas | WWII-era / European term | Same physics; Gengas literature |
+| Imbert / constricted-throat / nozzle gasifier | Classic Imbert family | Throat + radial nozzles |
+| Stratified / open-top / FEMA | Open-core stratified bed | FEMA emergency design lineage |
+| Missouri / open-core / sawdust gasifier | Fines-capable open bed | Different geometry for fines |
+| Cross-draft / cross-flow | Side air inlet | Often higher tar |
+| Updraft / counter-flow | Air up, fuel down | High tar; heat-only |
+| GEK / Power Pallet style | Modular commercial DIY lineage | Cleanup train often modular |
+| TLUD / rocket / woodgas stove | Stove-scale inverted downdraft | Cooking, not engine gas |
+| Biochar reactor / retort | Often pyrolysis-focused | May not produce engine-quality gas |
+| Syngas generator / biomass gasifier | Industrial marketing | Check scale and cleanup claims |
+
+### Stirling and external-combustion naming
+Stirling literature often uses different product names for the same external-combustion idea:
+- Hot-air engine, external combustion engine, regenerative heat engine
+- Manufacturer model names that never say “Stirling”
+- “Waste-heat engine” or “biomass engine” when paired with a burner or gasifier
+
+**Core check:** Does it run on an external heat source with a closed working gas (air, helium, hydrogen)? If yes, treat it as Stirling-class even if the brochure never uses the word.
+
+### Pyrolysis vs gasification (do not merge blindly)
+| Process | Primary goal | Typical gas quality | Relevance |
+|---------|--------------|---------------------|-----------|
+| **Gasification** | Continuous producer gas (CO + H₂ + N₂) with controlled air/steam | Engine-usable if cleaned | This skill’s focus |
+| **Pyrolysis** | Char, bio-oil, and/or condensable vapors; little or no free oxygen | Often high-tar vapors | Related chemistry; not the same duty |
+| **Combustion** | Heat only | Flue gas, not fuel gas | Different product |
+| **Torrefaction** | Dry, roast biomass for fuel prep | Not a gas product | Fuel prep only |
+
+Documents labeled “pyrolysis reactor,” “bio-oil unit,” or “char kiln” may share heat-transfer and tar chemistry with gasifiers but are **not** drop-in design templates for engine or Stirling gas.
+
+### How to use this when reading documents or searching
+1. Map the marketing name to a **family** (Imbert, stratified, Missouri, updraft, stove, pyrolysis, Stirling).
+2. If the name is ambiguous, look for: throat/nozzles, open top, air direction, and whether the product is gas for an engine vs heat vs char/oil.
+3. Prefer physics (SV, moisture, cleanup train) over brand labels.
+4. When sources conflict, check whether they are actually describing different families or different duties (engine gas vs heat vs biochar).
+
+### When Answering
+- Translate aliases into family terms so the user gets one consistent vocabulary.
+- Flag when a document is pyrolysis- or stove-oriented and not engine-gas design.
+- Do not force Imbert rules onto a unit that is clearly stratified, Missouri, or pyrolysis-only.
 
 ---
 
@@ -392,6 +443,7 @@ First builds always take longer. Budget insulation and filtration materials; ski
 - Research units (Viking) are benchmarks, not DIY templates.
 - Cooler gas is denser and better for engines (ideal gas law).
 - Prefer no unsolicited scope creep; answer what was asked.
+- Translate marketing/alias names into family terms; flag pyrolysis or stove docs that are not engine-gas designs.
 
 ---
 
@@ -435,3 +487,4 @@ First builds always take longer. Budget insulation and filtration materials; ski
 
 - **2026-08-22** — Full uploads library patterns; family SV; real-vs-ideal efficiency; turndown; Missouri first-class; Hearth Lab alignment.
 - **2026-08-22 (b)** — Added model limits, materials guide, fuel prep, Stirling thermal matching, startup/shutdown, common DIY failure modes, maintenance schedule, build skill/time guide, dual-fuel/backup note, cooler-gas density physics, decision-tree troubleshooting.
+- **2026-08-22 (c)** — Added Naming, Aliases & Related Processes: gasifier aliases, Stirling product-name variants, pyrolysis vs gasification distinction, guidance for reading mixed-label documents.
