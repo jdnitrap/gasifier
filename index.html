@@ -36,7 +36,7 @@
     .warn { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .ok { background: rgba(16,185,129,0.12); border: 1px solid var(--green); color: #86efac; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .info { background: rgba(6,182,212,0.1); border: 1px solid var(--cyan); color: #a5f3fc; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
-    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 260px; margin-top: 1rem; }
+    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 240px; margin-top: 0.75rem; }
     .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
     button { background: var(--green); color: white; border: none; padding: 0.65rem 1.3rem; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 0.4rem; margin-top: 0.4rem; }
@@ -56,9 +56,8 @@
 <body>
   <div class="container">
     <h1>Home Wood Gasifier Calculator & Simulator</h1>
-    <p class="sub">English units · Equilibrium model + running trends · DIY guidance</p>
+    <p class="sub">English units · Equilibrium model + fuel-burn trends · DIY guidance</p>
 
-    <!-- 1. INPUTS -->
     <div class="card">
       <h2>1. Inputs</h2>
       <div class="grid">
@@ -110,7 +109,7 @@
         </div>
         <div>
           <label>Dry feed rate lb/h — <span class="val" id="feedVal">8</span></label>
-          <input type="range" id="feed" min="2" max="40" value="8" step="0.5">
+          <input type="range" id="feed" min="1" max="40" value="8" step="0.5">
         </div>
         <div>
           <label>Hearth load scf/h·in²</label>
@@ -125,7 +124,6 @@
       <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas for engines.</p>
     </div>
 
-    <!-- 2. ENGINE -->
     <div class="card">
       <h2>2. Engine Matching</h2>
       <div class="grid">
@@ -140,25 +138,23 @@
       </div>
     </div>
 
-    <!-- 3. SNAPSHOT RESULTS -->
     <div class="card">
       <h2>3. Snapshot Results</h2>
       <button onclick="runSim()">Update Snapshot</button>
       <button class="secondary" onclick="compareFuels()">Compare Fuels</button>
       <div class="metrics" id="metrics"></div>
       <div id="compBars"></div>
-      <div class="chart-box" style="height:220px"><canvas id="compChart"></canvas></div>
+      <div class="chart-box" style="height:200px"><canvas id="compChart"></canvas></div>
       <div id="status"></div>
       <div id="guidance" class="info" style="display:none;"></div>
     </div>
 
-    <!-- 4. RUNNING TRENDS -->
     <div class="card">
-      <h2>4. Running Trends Simulation</h2>
+      <h2>4. Running Trends + Fuel Burn</h2>
       <div class="grid">
         <div>
-          <label>Duration (hours) — <span class="val" id="hoursVal">4</span></label>
-          <input type="range" id="hours" min="1" max="24" value="4" step="0.5">
+          <label>Duration (hours) — <span class="val" id="hoursVal">4</span> (max 168 = 7 days)</label>
+          <input type="range" id="hours" min="1" max="168" value="4" step="1">
         </div>
         <div>
           <label>Time step (minutes)</label>
@@ -167,39 +163,39 @@
             <option value="10" selected>10 min</option>
             <option value="15">15 min</option>
             <option value="30">30 min</option>
+            <option value="60">60 min</option>
           </select>
         </div>
       </div>
+      <p class="note">Total fuel loaded = dry feed rate × duration. When remaining fuel reaches zero, gas production collapses.</p>
       <div style="margin-top:0.75rem">
         <button id="btnStart" onclick="startTrends()">Start</button>
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
         <button id="btnReset" class="reset" onclick="resetTrends()">Reset</button>
       </div>
-      <div class="sim-status" id="simStatus">Ready. Set duration (1–24 hours) and press Start.</div>
+      <div class="sim-status" id="simStatus">Ready. Set duration (1–168 h) and press Start.</div>
       <div class="chart-row">
+        <div class="chart-box"><canvas id="trendFuel"></canvas></div>
         <div class="chart-box"><canvas id="trendLHV"></canvas></div>
-        <div class="chart-box"><canvas id="trendTar"></canvas></div>
       </div>
       <div class="chart-row">
+        <div class="chart-box"><canvas id="trendTar"></canvas></div>
         <div class="chart-box"><canvas id="trendPower"></canvas></div>
-        <div class="chart-box"><canvas id="trendComp"></canvas></div>
       </div>
-      <p class="note">Simulation includes startup ramp (first ~20–30 min), then multi-hour steady-state with realistic noise and mild drift. Values are indicative only.</p>
+      <div class="chart-box"><canvas id="trendComp"></canvas></div>
+      <p class="note">Fuel chart shows remaining dry mass (lb). Startup ramp ~20–30 min, then steady burn until fuel is exhausted.</p>
     </div>
 
-    <!-- 5. MULTI-FUEL -->
     <div class="card" id="compareCard" style="display:none;">
       <h2>Multi-Fuel Comparison</h2>
       <table id="compareTable"><thead><tr><th>Fuel</th><th>LHV</th><th>H₂ %</th><th>CO %</th><th>Tar</th><th>Notes</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <!-- 6. SIZING -->
     <div class="card">
       <h2>5. Reactor Sizing</h2>
       <div class="metrics" id="sizeMetrics"></div>
     </div>
 
-    <!-- RULES -->
     <div class="card">
       <h2>Key Design Rules</h2>
       <ul style="font-size:0.9rem; color:var(--muted); padding-left:1.2rem;">
@@ -225,8 +221,8 @@
     };
 
     let compChart = null;
-    let trendCharts = { lhv: null, tar: null, power: null, comp: null };
-    let sim = { running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10 };
+    let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null };
+    let sim = { running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10, fuelLeft: 0, fuelStart: 0 };
 
     function getBlendFuel() {
       const f1 = FUELS[document.getElementById('fuel1').value];
@@ -245,7 +241,11 @@
       };
     }
 
-    function equilibrium(fuel, moist, ER, gtype, tHours) {
+    // Corrected simplified equilibrium (FAO/SERI-style tendencies)
+    function equilibrium(fuel, moist, ER, gtype, tHours, fuelOk) {
+      if (fuelOk === false) {
+        return { H2: 0, CO: 0, CH4: 0, CO2: 0, N2: 100, LHV: 0, tar: 0 };
+      }
       const startup = tHours === undefined ? 1 : Math.min(1, 0.35 + tHours * 1.6);
 
       let H2 = 16 + (fuel.H * 80) - (moist * 0.15);
@@ -260,9 +260,9 @@
       if (gtype === 'updraft') { CH4 += 1.5; CO -= 2; H2 -= 1; }
       if (gtype === 'fema') { CO -= 1; H2 -= 0.5; }
 
-      const noise = tHours !== undefined ? (Math.random() - 0.5) * 1.8 : 0;
+      const noise = tHours !== undefined ? (Math.random() - 0.5) * 1.5 : 0;
       H2 = Math.max(5, (H2 * startup) + noise);
-      CO = Math.max(8, (CO * startup) + noise * 0.8);
+      CO = Math.max(8, (CO * startup) + noise * 0.7);
       CH4 = Math.max(0.4, CH4 * startup);
       CO2 = Math.max(5, CO2 + (1 - startup) * 3);
 
@@ -270,6 +270,7 @@
       H2 *= 100 / sum; CO *= 100 / sum; CH4 *= 100 / sum; CO2 *= 100 / sum;
       N2 = 100 - (H2 + CO + CH4 + CO2);
 
+      // LHV in Btu/scf (approx lower heating values)
       const LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
 
       let tar = 100 * fuel.tarF;
@@ -300,6 +301,7 @@
       document.getElementById('fuelNote').textContent = fuel.note;
 
       const gas = equilibrium(fuel, moist, ER, gtype);
+      // Yield scf/lb dry, moisture penalty
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
       const scfh = feed * Math.max(25, yield);
       const scfm = scfh / 60;
@@ -307,6 +309,7 @@
       const throatArea = scfh / Bg;
       const throatDia = Math.sqrt(4 * throatArea / Math.PI);
       const recDia = Math.max(6, Math.ceil(throatDia + (gtype === 'imbert' ? 4 : 2)));
+      // Rough shaft power: thermal × ~22% overall conversion
       const shaftHp = (scfm * gas.LHV * 0.22) / 2545;
 
       document.getElementById('metrics').innerHTML =
@@ -383,7 +386,8 @@
     }
 
     function initTrendCharts() {
-      if (trendCharts.lhv) return;
+      if (trendCharts.fuel) return;
+      trendCharts.fuel = makeTrendChart('trendFuel', 'Fuel remaining (lb)', '#10b981');
       trendCharts.lhv = makeTrendChart('trendLHV', 'LHV (Btu/scf)', '#fbbf24');
       trendCharts.tar = makeTrendChart('trendTar', 'Tar (mg/Nm³)', '#f59e0b');
       trendCharts.power = makeTrendChart('trendPower', 'Shaft power (hp)', '#8b5cf6');
@@ -409,6 +413,9 @@
 
     function updateTrendCharts() {
       const labels = sim.history.map(h => h.t.toFixed(2));
+      trendCharts.fuel.data.labels = labels;
+      trendCharts.fuel.data.datasets[0].data = sim.history.map(h => h.fuelLeft);
+      trendCharts.fuel.update('none');
       trendCharts.lhv.data.labels = labels;
       trendCharts.lhv.data.datasets[0].data = sim.history.map(h => h.LHV);
       trendCharts.lhv.update('none');
@@ -431,26 +438,50 @@
       const ER = +document.getElementById('er').value;
       const gtype = document.getElementById('gtype').value;
       const feed = +document.getElementById('feed').value;
+      const dt = sim.stepMin / 60; // hours
 
-      const gas = equilibrium(fuel, moist, ER, gtype, sim.t);
+      // Consume fuel
+      const consume = feed * dt;
+      sim.fuelLeft = Math.max(0, sim.fuelLeft - consume);
+      const fuelOk = sim.fuelLeft > 0.01;
+
+      const gas = equilibrium(fuel, moist, ER, gtype, sim.t, fuelOk);
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
-      const scfh = feed * Math.max(25, yield);
+      const scfh = fuelOk ? feed * Math.max(25, yield) : 0;
       const scfm = scfh / 60;
-      const power = (scfm * gas.LHV * 0.22) / 2545;
+      const power = fuelOk ? (scfm * gas.LHV * 0.22) / 2545 : 0;
 
-      sim.history.push({ t: sim.t, LHV: gas.LHV, tar: gas.tar, power: power, H2: gas.H2, CO: gas.CO });
-      if (sim.history.length > 300) sim.history.shift();
+      sim.history.push({
+        t: sim.t,
+        LHV: gas.LHV,
+        tar: gas.tar,
+        power: power,
+        H2: gas.H2,
+        CO: gas.CO,
+        fuelLeft: sim.fuelLeft
+      });
+      if (sim.history.length > 400) sim.history.shift();
 
       updateTrendCharts();
-      document.getElementById('simStatus').textContent = 'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT.toFixed(1) + ' h';
+      document.getElementById('simStatus').textContent =
+        'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT.toFixed(0) +
+        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb';
 
-      sim.t += sim.stepMin / 60;
-      if (sim.t > sim.maxT + 0.001) {
+      if (!fuelOk) {
         stopTrends();
-        document.getElementById('simStatus').textContent = 'Finished ' + sim.maxT + ' hour run.';
+        document.getElementById('simStatus').textContent =
+          'Fuel exhausted at t = ' + sim.t.toFixed(2) + ' h. Production stopped.';
         return;
       }
-      sim.timer = setTimeout(stepTrends, 180);
+
+      sim.t += dt;
+      if (sim.t > sim.maxT + 0.001) {
+        stopTrends();
+        document.getElementById('simStatus').textContent =
+          'Finished ' + sim.maxT + ' h run. Fuel remaining: ' + sim.fuelLeft.toFixed(1) + ' lb';
+        return;
+      }
+      sim.timer = setTimeout(stepTrends, 120);
     }
 
     function startTrends() {
@@ -458,11 +489,17 @@
       initTrendCharts();
       sim.maxT = +document.getElementById('hours').value;
       sim.stepMin = +document.getElementById('timestep').value;
-      if (sim.history.length === 0) sim.t = 0;
+      const feed = +document.getElementById('feed').value;
+      if (sim.history.length === 0) {
+        sim.t = 0;
+        sim.fuelStart = feed * sim.maxT;
+        sim.fuelLeft = sim.fuelStart;
+      }
       sim.running = true;
       document.getElementById('btnStart').disabled = true;
       document.getElementById('btnStop').disabled = false;
-      document.getElementById('simStatus').textContent = 'Starting…';
+      document.getElementById('simStatus').textContent =
+        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb dry fuel…';
       stepTrends();
     }
 
@@ -471,14 +508,18 @@
       clearTimeout(sim.timer);
       document.getElementById('btnStart').disabled = false;
       document.getElementById('btnStop').disabled = true;
-      if (sim.t < sim.maxT) document.getElementById('simStatus').textContent = 'Paused at t = ' + sim.t.toFixed(2) + ' h';
+      if (sim.t < sim.maxT && sim.fuelLeft > 0.01)
+        document.getElementById('simStatus').textContent =
+          'Paused at t = ' + sim.t.toFixed(2) + ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb';
     }
 
     function resetTrends() {
       stopTrends();
       sim.t = 0;
       sim.history = [];
-      if (trendCharts.lhv) {
+      sim.fuelLeft = 0;
+      sim.fuelStart = 0;
+      if (trendCharts.fuel) {
         Object.values(trendCharts).forEach(c => {
           if (!c) return;
           c.data.labels = [];
