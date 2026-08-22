@@ -36,7 +36,7 @@
     .warn { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .ok { background: rgba(16,185,129,0.12); border: 1px solid var(--green); color: #86efac; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .info { background: rgba(6,182,212,0.1); border: 1px solid var(--cyan); color: #a5f3fc; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
-    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 240px; margin-top: 0.75rem; }
+    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 260px; margin-top: 0.75rem; }
     .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
     button { background: var(--green); color: white; border: none; padding: 0.65rem 1.3rem; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 0.4rem; margin-top: 0.4rem; }
@@ -167,7 +167,7 @@
           </select>
         </div>
       </div>
-      <p class="note">Total fuel loaded = dry feed rate × duration. When remaining fuel reaches zero, gas production collapses.</p>
+      <p class="note">Total fuel loaded = dry feed rate × duration. Fuel is burned at exactly the selected lb/h. When remaining fuel reaches zero, production collapses.</p>
       <div style="margin-top:0.75rem">
         <button id="btnStart" onclick="startTrends()">Start</button>
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
@@ -183,7 +183,7 @@
         <div class="chart-box"><canvas id="trendPower"></canvas></div>
       </div>
       <div class="chart-box"><canvas id="trendComp"></canvas></div>
-      <p class="note">Fuel chart shows remaining dry mass (lb). Startup ramp ~20–30 min, then steady burn until fuel is exhausted.</p>
+      <p class="note">Fuel chart declines at the exact selected feed rate (lb/h). Startup ramp ~20–30 min, then steady burn until fuel is exhausted.</p>
     </div>
 
     <div class="card" id="compareCard" style="display:none;">
@@ -222,7 +222,7 @@
 
     let compChart = null;
     let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null };
-    let sim = { running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10, fuelLeft: 0, fuelStart: 0 };
+    let sim = { running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10, fuelLeft: 0, fuelStart: 0, feedRate: 8 };
 
     function getBlendFuel() {
       const f1 = FUELS[document.getElementById('fuel1').value];
@@ -241,7 +241,6 @@
       };
     }
 
-    // Corrected simplified equilibrium (FAO/SERI-style tendencies)
     function equilibrium(fuel, moist, ER, gtype, tHours, fuelOk) {
       if (fuelOk === false) {
         return { H2: 0, CO: 0, CH4: 0, CO2: 0, N2: 100, LHV: 0, tar: 0 };
@@ -270,7 +269,6 @@
       H2 *= 100 / sum; CO *= 100 / sum; CH4 *= 100 / sum; CO2 *= 100 / sum;
       N2 = 100 - (H2 + CO + CH4 + CO2);
 
-      // LHV in Btu/scf (approx lower heating values)
       const LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
 
       let tar = 100 * fuel.tarF;
@@ -301,7 +299,6 @@
       document.getElementById('fuelNote').textContent = fuel.note;
 
       const gas = equilibrium(fuel, moist, ER, gtype);
-      // Yield scf/lb dry, moisture penalty
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
       const scfh = feed * Math.max(25, yield);
       const scfm = scfh / 60;
@@ -309,7 +306,6 @@
       const throatArea = scfh / Bg;
       const throatDia = Math.sqrt(4 * throatArea / Math.PI);
       const recDia = Math.max(6, Math.ceil(throatDia + (gtype === 'imbert' ? 4 : 2)));
-      // Rough shaft power: thermal × ~22% overall conversion
       const shaftHp = (scfm * gas.LHV * 0.22) / 2545;
 
       document.getElementById('metrics').innerHTML =
@@ -369,42 +365,65 @@
       document.getElementById('compareCard').style.display = 'block';
     }
 
-    function makeTrendChart(canvasId, label, color) {
+    // Chart factory with explicit Y-axis title
+    function makeTrendChart(canvasId, seriesLabel, color, yTitle) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       return new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label, data: [], borderColor: color, tension: 0.2, pointRadius: 0, borderWidth: 2 }] },
+        data: { labels: [], datasets: [{ label: seriesLabel, data: [], borderColor: color, tension: 0.15, pointRadius: 0, borderWidth: 2 }] },
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 8 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Hours', color: '#a1a1aa' } },
-            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } }
+            x: {
+              ticks: { color: '#a1a1aa', maxTicksLimit: 8 },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
+            },
+            y: {
+              ticks: { color: '#a1a1aa' },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: yTitle, color: '#a1a1aa' }
+            }
           },
           plugins: { legend: { labels: { color: '#a1a1aa' } } }
         }
       });
     }
 
+    function destroyTrendCharts() {
+      Object.keys(trendCharts).forEach(k => {
+        if (trendCharts[k]) { trendCharts[k].destroy(); trendCharts[k] = null; }
+      });
+    }
+
     function initTrendCharts() {
-      if (trendCharts.fuel) return;
-      trendCharts.fuel = makeTrendChart('trendFuel', 'Fuel remaining (lb)', '#10b981');
-      trendCharts.lhv = makeTrendChart('trendLHV', 'LHV (Btu/scf)', '#fbbf24');
-      trendCharts.tar = makeTrendChart('trendTar', 'Tar (mg/Nm³)', '#f59e0b');
-      trendCharts.power = makeTrendChart('trendPower', 'Shaft power (hp)', '#8b5cf6');
-      trendCharts.comp = new Chart(document.getElementById('trendComp').getContext('2d'), {
+      destroyTrendCharts();
+      trendCharts.fuel  = makeTrendChart('trendFuel',  'Fuel remaining', '#10b981', 'Fuel remaining (lb dry)');
+      trendCharts.lhv   = makeTrendChart('trendLHV',   'LHV',           '#fbbf24', 'LHV (Btu/scf)');
+      trendCharts.tar   = makeTrendChart('trendTar',   'Tar',           '#f59e0b', 'Tar (mg/Nm³)');
+      trendCharts.power = makeTrendChart('trendPower', 'Shaft power',   '#8b5cf6', 'Shaft power (hp)');
+      trendCharts.comp  = new Chart(document.getElementById('trendComp').getContext('2d'), {
         type: 'line',
         data: {
           labels: [],
           datasets: [
-            { label: 'H₂ %', data: [], borderColor: '#60a5fa', tension: 0.2, pointRadius: 0, borderWidth: 2 },
-            { label: 'CO %', data: [], borderColor: '#fbbf24', tension: 0.2, pointRadius: 0, borderWidth: 2 }
+            { label: 'H₂ %', data: [], borderColor: '#60a5fa', tension: 0.15, pointRadius: 0, borderWidth: 2 },
+            { label: 'CO %', data: [], borderColor: '#fbbf24', tension: 0.15, pointRadius: 0, borderWidth: 2 }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 8 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Hours', color: '#a1a1aa' } },
-            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' } }
+            x: {
+              ticks: { color: '#a1a1aa', maxTicksLimit: 8 },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
+            },
+            y: {
+              ticks: { color: '#a1a1aa' },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: 'Volume %', color: '#a1a1aa' }
+            }
           },
           plugins: { legend: { labels: { color: '#a1a1aa' } } }
         }
@@ -437,14 +456,11 @@
       const moist = +document.getElementById('moisture').value;
       const ER = +document.getElementById('er').value;
       const gtype = document.getElementById('gtype').value;
-      const feed = +document.getElementById('feed').value;
+      const feed = sim.feedRate; // locked at start so slope is exact
       const dt = sim.stepMin / 60; // hours
 
-      // Consume fuel
-      const consume = feed * dt;
-      sim.fuelLeft = Math.max(0, sim.fuelLeft - consume);
-      const fuelOk = sim.fuelLeft > 0.01;
-
+      // Record current state BEFORE consuming this step
+      const fuelOk = sim.fuelLeft > 0.001;
       const gas = equilibrium(fuel, moist, ER, gtype, sim.t, fuelOk);
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
       const scfh = fuelOk ? feed * Math.max(25, yield) : 0;
@@ -458,19 +474,25 @@
         power: power,
         H2: gas.H2,
         CO: gas.CO,
-        fuelLeft: sim.fuelLeft
+        fuelLeft: +sim.fuelLeft.toFixed(3)
       });
-      if (sim.history.length > 400) sim.history.shift();
+      if (sim.history.length > 500) sim.history.shift();
 
       updateTrendCharts();
       document.getElementById('simStatus').textContent =
-        'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT.toFixed(0) +
-        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb';
+        'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT +
+        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb · Burn rate: ' + feed + ' lb/h';
 
-      if (!fuelOk) {
+      // Now consume fuel for this time step (exact rate)
+      sim.fuelLeft = Math.max(0, sim.fuelLeft - feed * dt);
+
+      if (sim.fuelLeft <= 0.001) {
+        // final zero point
+        sim.history.push({ t: sim.t + dt, LHV: 0, tar: 0, power: 0, H2: 0, CO: 0, fuelLeft: 0 });
+        updateTrendCharts();
         stopTrends();
         document.getElementById('simStatus').textContent =
-          'Fuel exhausted at t = ' + sim.t.toFixed(2) + ' h. Production stopped.';
+          'Fuel exhausted at t ≈ ' + (sim.t + dt).toFixed(2) + ' h. Production stopped.';
         return;
       }
 
@@ -481,25 +503,28 @@
           'Finished ' + sim.maxT + ' h run. Fuel remaining: ' + sim.fuelLeft.toFixed(1) + ' lb';
         return;
       }
-      sim.timer = setTimeout(stepTrends, 120);
+      sim.timer = setTimeout(stepTrends, 100);
     }
 
     function startTrends() {
       if (sim.running) return;
+      // Always start clean so feed rate is respected
+      resetTrends(false);
       initTrendCharts();
+
       sim.maxT = +document.getElementById('hours').value;
       sim.stepMin = +document.getElementById('timestep').value;
-      const feed = +document.getElementById('feed').value;
-      if (sim.history.length === 0) {
-        sim.t = 0;
-        sim.fuelStart = feed * sim.maxT;
-        sim.fuelLeft = sim.fuelStart;
-      }
+      sim.feedRate = +document.getElementById('feed').value;
+      sim.t = 0;
+      sim.fuelStart = sim.feedRate * sim.maxT;
+      sim.fuelLeft = sim.fuelStart;
+      sim.history = [];
+
       sim.running = true;
       document.getElementById('btnStart').disabled = true;
       document.getElementById('btnStop').disabled = false;
       document.getElementById('simStatus').textContent =
-        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb dry fuel…';
+        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb dry fuel at ' + sim.feedRate + ' lb/h…';
       stepTrends();
     }
 
@@ -508,26 +533,20 @@
       clearTimeout(sim.timer);
       document.getElementById('btnStart').disabled = false;
       document.getElementById('btnStop').disabled = true;
-      if (sim.t < sim.maxT && sim.fuelLeft > 0.01)
+      if (sim.t < sim.maxT && sim.fuelLeft > 0.001)
         document.getElementById('simStatus').textContent =
           'Paused at t = ' + sim.t.toFixed(2) + ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb';
     }
 
-    function resetTrends() {
+    function resetTrends(updateStatus) {
       stopTrends();
       sim.t = 0;
       sim.history = [];
       sim.fuelLeft = 0;
       sim.fuelStart = 0;
-      if (trendCharts.fuel) {
-        Object.values(trendCharts).forEach(c => {
-          if (!c) return;
-          c.data.labels = [];
-          c.data.datasets.forEach(d => d.data = []);
-          c.update();
-        });
-      }
-      document.getElementById('simStatus').textContent = 'Reset. Ready to start.';
+      destroyTrendCharts();
+      if (updateStatus !== false)
+        document.getElementById('simStatus').textContent = 'Reset. Ready to start.';
     }
 
     ['moisture','er','feed','psize','blend','hours'].forEach(id => {
