@@ -37,6 +37,7 @@
     .ok { background: rgba(16,185,129,0.12); border: 1px solid var(--green); color: #86efac; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .info { background: rgba(6,182,212,0.1); border: 1px solid var(--cyan); color: #a5f3fc; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
     .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 260px; margin-top: 0.75rem; }
+    .chart-box.tall { height: 340px; }
     .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
     button { background: var(--green); color: white; border: none; padding: 0.65rem 1.3rem; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 0.4rem; margin-top: 0.4rem; }
@@ -176,6 +177,11 @@
         <button id="btnSave" class="save" onclick="saveData()" disabled>Save Data</button>
       </div>
       <div class="sim-status" id="simStatus">Ready. Set duration (1–168 h) and press Start.</div>
+
+      <h2 style="margin-top:1.25rem;color:var(--cyan)">Combined overview (normalized 0–100)</h2>
+      <p class="note">All metrics scaled so shapes can be compared on one chart. Absolute values remain on the individual charts below.</p>
+      <div class="chart-box tall"><canvas id="trendCombined"></canvas></div>
+
       <div class="chart-row">
         <div class="chart-box"><canvas id="trendFuel"></canvas></div>
         <div class="chart-box"><canvas id="trendLHV"></canvas></div>
@@ -223,7 +229,7 @@
     };
 
     let compChart = null;
-    let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null };
+    let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null, combined: null };
     let sim = {
       running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10,
       fuelLeft: 0, fuelStart: 0, feedRate: 8,
@@ -474,26 +480,85 @@
           plugins: { legend: { labels: { color: '#a1a1aa' } } }
         }
       });
+
+      // Combined normalized chart
+      trendCharts.combined = new Chart(document.getElementById('trendCombined').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'Fuel remaining', data: [], borderColor: '#10b981', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'LHV', data: [], borderColor: '#fbbf24', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'Tar (inv)', data: [], borderColor: '#f59e0b', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'Shaft power', data: [], borderColor: '#8b5cf6', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'H₂', data: [], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'CO', data: [], borderColor: '#f472b6', tension: 0.25, pointRadius: 0, borderWidth: 2 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: { color: '#a1a1aa', maxTicksLimit: 10 },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
+            },
+            y: {
+              min: 0, max: 100,
+              ticks: { color: '#a1a1aa' },
+              grid: { color: '#3f4655' },
+              title: { display: true, text: 'Normalized % of run max', color: '#a1a1aa' }
+            }
+          },
+          plugins: { legend: { labels: { color: '#a1a1aa' } } }
+        }
+      });
+    }
+
+    function normSeries(arr) {
+      if (!arr.length) return [];
+      const max = Math.max(...arr, 1e-9);
+      return arr.map(v => (v / max) * 100);
     }
 
     function updateTrendCharts() {
       const labels = sim.history.map(h => h.t.toFixed(2));
+      const fuelA = sim.history.map(h => h.fuelLeft);
+      const lhvA = sim.history.map(h => h.LHV);
+      const tarA = sim.history.map(h => h.tar);
+      const powA = sim.history.map(h => h.power);
+      const h2A = sim.history.map(h => h.H2);
+      const coA = sim.history.map(h => h.CO);
+
       trendCharts.fuel.data.labels = labels;
-      trendCharts.fuel.data.datasets[0].data = sim.history.map(h => h.fuelLeft);
+      trendCharts.fuel.data.datasets[0].data = fuelA;
       trendCharts.fuel.update('none');
       trendCharts.lhv.data.labels = labels;
-      trendCharts.lhv.data.datasets[0].data = sim.history.map(h => h.LHV);
+      trendCharts.lhv.data.datasets[0].data = lhvA;
       trendCharts.lhv.update('none');
       trendCharts.tar.data.labels = labels;
-      trendCharts.tar.data.datasets[0].data = sim.history.map(h => h.tar);
+      trendCharts.tar.data.datasets[0].data = tarA;
       trendCharts.tar.update('none');
       trendCharts.power.data.labels = labels;
-      trendCharts.power.data.datasets[0].data = sim.history.map(h => h.power);
+      trendCharts.power.data.datasets[0].data = powA;
       trendCharts.power.update('none');
       trendCharts.comp.data.labels = labels;
-      trendCharts.comp.data.datasets[0].data = sim.history.map(h => h.H2);
-      trendCharts.comp.data.datasets[1].data = sim.history.map(h => h.CO);
+      trendCharts.comp.data.datasets[0].data = h2A;
+      trendCharts.comp.data.datasets[1].data = coA;
       trendCharts.comp.update('none');
+
+      // Tar inverted so "better" (lower tar) goes up on the combined chart
+      const tarMax = Math.max(...tarA, 1);
+      const tarInv = tarA.map(v => ((tarMax - v) / tarMax) * 100);
+
+      trendCharts.combined.data.labels = labels;
+      trendCharts.combined.data.datasets[0].data = normSeries(fuelA);
+      trendCharts.combined.data.datasets[1].data = normSeries(lhvA);
+      trendCharts.combined.data.datasets[2].data = tarInv;
+      trendCharts.combined.data.datasets[3].data = normSeries(powA);
+      trendCharts.combined.data.datasets[4].data = normSeries(h2A);
+      trendCharts.combined.data.datasets[5].data = normSeries(coA);
+      trendCharts.combined.update('none');
     }
 
     function setSaveEnabled() {
