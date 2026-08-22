@@ -56,7 +56,7 @@
 <body>
   <div class="container">
     <h1>Home Wood Gasifier Calculator & Simulator</h1>
-    <p class="sub">English units · Equilibrium model + fuel-burn trends · DIY guidance</p>
+    <p class="sub">English units · Equilibrium model + realistic fuel-burn trends · DIY guidance</p>
 
     <div class="card">
       <h2>1. Inputs</h2>
@@ -167,7 +167,7 @@
           </select>
         </div>
       </div>
-      <p class="note">Total fuel loaded = dry feed rate × duration. Fuel is burned at exactly the selected lb/h. When remaining fuel reaches zero, production collapses.</p>
+      <p class="note">Total fuel = feed rate × duration. Burn rate is exact. Curves include startup, natural variation, and a gradual fade as fuel runs out.</p>
       <div style="margin-top:0.75rem">
         <button id="btnStart" onclick="startTrends()">Start</button>
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
@@ -183,7 +183,7 @@
         <div class="chart-box"><canvas id="trendPower"></canvas></div>
       </div>
       <div class="chart-box"><canvas id="trendComp"></canvas></div>
-      <p class="note">Fuel chart declines at the exact selected feed rate (lb/h). Startup ramp ~20–30 min, then steady burn until fuel is exhausted.</p>
+      <p class="note">Startup ~30–45 min, then steady with organic variation. Last ~10–15% of fuel produces a smooth decline instead of a cliff.</p>
     </div>
 
     <div class="card" id="compareCard" style="display:none;">
@@ -222,7 +222,12 @@
 
     let compChart = null;
     let trendCharts = { fuel: null, lhv: null, tar: null, power: null, comp: null };
-    let sim = { running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10, fuelLeft: 0, fuelStart: 0, feedRate: 8 };
+    let sim = {
+      running: false, timer: null, t: 0, history: [], maxT: 0, stepMin: 10,
+      fuelLeft: 0, fuelStart: 0, feedRate: 8,
+      // persistent state for organic variation
+      walkH2: 0, walkCO: 0, walkTar: 0, walkLHV: 0
+    };
 
     function getBlendFuel() {
       const f1 = FUELS[document.getElementById('fuel1').value];
@@ -241,12 +246,33 @@
       };
     }
 
-    function equilibrium(fuel, moist, ER, gtype, tHours, fuelOk) {
-      if (fuelOk === false) {
+    // Smooth startup: 0 → 1 over ~0.6 h (sigmoid-like)
+    function startupFactor(t) {
+      if (t === undefined) return 1;
+      const k = 8;
+      const mid = 0.28;
+      return 1 / (1 + Math.exp(-k * (t - mid)));
+    }
+
+    // Gradual fade when fuel fraction is low (last ~12%)
+    function fuelFactor(fuelLeft, fuelStart) {
+      if (fuelStart <= 0) return 0;
+      const frac = fuelLeft / fuelStart;
+      if (frac > 0.12) return 1;
+      // smooth cubic fade from 1 → 0 over last 12%
+      const x = frac / 0.12;
+      return Math.max(0, x * x * (3 - 2 * x));
+    }
+
+    function equilibrium(fuel, moist, ER, gtype, tHours, fuelLeft, fuelStart) {
+      const su = startupFactor(tHours);
+      const ff = (fuelLeft !== undefined && fuelStart !== undefined)
+        ? fuelFactor(fuelLeft, fuelStart) : 1;
+      if (ff <= 0.001) {
         return { H2: 0, CO: 0, CH4: 0, CO2: 0, N2: 100, LHV: 0, tar: 0 };
       }
-      const startup = tHours === undefined ? 1 : Math.min(1, 0.35 + tHours * 1.6);
 
+      // Base composition tendencies
       let H2 = 16 + (fuel.H * 80) - (moist * 0.15);
       let CO = 20 + (fuel.C * 15) - (moist * 0.25);
       let CH4 = 2.5 - (ER - 0.25) * 4;
@@ -259,26 +285,59 @@
       if (gtype === 'updraft') { CH4 += 1.5; CO -= 2; H2 -= 1; }
       if (gtype === 'fema') { CO -= 1; H2 -= 0.5; }
 
-      const noise = tHours !== undefined ? (Math.random() - 0.5) * 1.5 : 0;
-      H2 = Math.max(5, (H2 * startup) + noise);
-      CO = Math.max(8, (CO * startup) + noise * 0.7);
-      CH4 = Math.max(0.4, CH4 * startup);
-      CO2 = Math.max(5, CO2 + (1 - startup) * 3);
+      // Apply startup (gas quality rises, CO2 starts higher)
+      H2 = H2 * (0.4 + 0.6 * su);
+      CO = CO * (0.45 + 0.55 * su);
+      CH4 = CH4 * su;
+      CO2 = CO2 + (1 - su) * 8;
+
+      // Persistent random walk + high-freq noise (only during trends)
+      if (tHours !== undefined) {
+        sim.walkH2 += (Math.random() - 0.5) * 0.35;
+        sim.walkCO += (Math.random() - 0.5) * 0.3;
+        sim.walkTar += (Math.random() - 0.5) * 2.5;
+        sim.walkLHV += (Math.random() - 0.5) * 0.8;
+        // soft clamp walks
+        sim.walkH2 = Math.max(-2.5, Math.min(2.5, sim.walkH2));
+        sim.walkCO = Math.max(-2.2, Math.min(2.2, sim.walkCO));
+        sim.walkTar = Math.max(-18, Math.min(18, sim.walkTar));
+        sim.walkLHV = Math.max(-6, Math.min(6, sim.walkLHV));
+
+        H2 += sim.walkH2 + (Math.random() - 0.5) * 0.8;
+        CO += sim.walkCO + (Math.random() - 0.5) * 0.7;
+      }
+
+      H2 = Math.max(3, H2);
+      CO = Math.max(5, CO);
+      CH4 = Math.max(0.3, CH4);
+      CO2 = Math.max(4, CO2);
 
       let sum = H2 + CO + CH4 + CO2 + N2;
       H2 *= 100 / sum; CO *= 100 / sum; CH4 *= 100 / sum; CO2 *= 100 / sum;
       N2 = 100 - (H2 + CO + CH4 + CO2);
 
-      const LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
+      let LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
+      if (tHours !== undefined) LHV += sim.walkLHV;
 
+      // Tar: high at start, settles, mild variation
       let tar = 100 * fuel.tarF;
       if (moist > 20) tar *= 1.5;
       if (moist > 30) tar *= 1.4;
       if (gtype === 'updraft') tar *= 3;
       if (gtype === 'fema') tar *= 1.4;
       if (ER < 0.22 || ER > 0.40) tar *= 1.6;
-      if (tHours !== undefined && tHours < 0.5) tar *= (1.8 - tHours);
-      if (tHours !== undefined) tar *= (0.92 + Math.random() * 0.16);
+      // Startup tar spike then decay
+      if (tHours !== undefined) {
+        const tarStartup = 1 + 1.4 * Math.exp(-tHours / 0.22);
+        tar *= tarStartup;
+        tar += sim.walkTar;
+        // slight slow rise over long runs (ash / channeling tendency)
+        if (tHours > 2) tar *= (1 + Math.min(0.12, (tHours - 2) * 0.008));
+      }
+      tar = Math.max(20, tar);
+
+      // Apply fuel fade to production metrics
+      H2 *= ff; CO *= ff; CH4 *= ff; LHV *= ff; tar = tar * (0.3 + 0.7 * ff);
 
       return { H2, CO, CH4, CO2, N2, LHV, tar: Math.round(tar) };
     }
@@ -365,12 +424,11 @@
       document.getElementById('compareCard').style.display = 'block';
     }
 
-    // Chart factory with explicit Y-axis title
     function makeTrendChart(canvasId, seriesLabel, color, yTitle) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       return new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: seriesLabel, data: [], borderColor: color, tension: 0.15, pointRadius: 0, borderWidth: 2 }] },
+        data: { labels: [], datasets: [{ label: seriesLabel, data: [], borderColor: color, tension: 0.25, pointRadius: 0, borderWidth: 2 }] },
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
@@ -407,8 +465,8 @@
         data: {
           labels: [],
           datasets: [
-            { label: 'H₂ %', data: [], borderColor: '#60a5fa', tension: 0.15, pointRadius: 0, borderWidth: 2 },
-            { label: 'CO %', data: [], borderColor: '#fbbf24', tension: 0.15, pointRadius: 0, borderWidth: 2 }
+            { label: 'H₂ %', data: [], borderColor: '#60a5fa', tension: 0.25, pointRadius: 0, borderWidth: 2 },
+            { label: 'CO %', data: [], borderColor: '#fbbf24', tension: 0.25, pointRadius: 0, borderWidth: 2 }
           ]
         },
         options: {
@@ -456,43 +514,41 @@
       const moist = +document.getElementById('moisture').value;
       const ER = +document.getElementById('er').value;
       const gtype = document.getElementById('gtype').value;
-      const feed = sim.feedRate; // locked at start so slope is exact
-      const dt = sim.stepMin / 60; // hours
+      const feed = sim.feedRate;
+      const dt = sim.stepMin / 60;
 
-      // Record current state BEFORE consuming this step
-      const fuelOk = sim.fuelLeft > 0.001;
-      const gas = equilibrium(fuel, moist, ER, gtype, sim.t, fuelOk);
+      const gas = equilibrium(fuel, moist, ER, gtype, sim.t, sim.fuelLeft, sim.fuelStart);
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
-      const scfh = fuelOk ? feed * Math.max(25, yield) : 0;
+      const ff = fuelFactor(sim.fuelLeft, sim.fuelStart);
+      const scfh = feed * Math.max(25, yield) * ff;
       const scfm = scfh / 60;
-      const power = fuelOk ? (scfm * gas.LHV * 0.22) / 2545 : 0;
+      const power = (scfm * gas.LHV * 0.22) / 2545;
 
       sim.history.push({
         t: sim.t,
-        LHV: gas.LHV,
+        LHV: +gas.LHV.toFixed(1),
         tar: gas.tar,
-        power: power,
-        H2: gas.H2,
-        CO: gas.CO,
+        power: +power.toFixed(2),
+        H2: +gas.H2.toFixed(2),
+        CO: +gas.CO.toFixed(2),
         fuelLeft: +sim.fuelLeft.toFixed(3)
       });
-      if (sim.history.length > 500) sim.history.shift();
+      if (sim.history.length > 600) sim.history.shift();
 
       updateTrendCharts();
       document.getElementById('simStatus').textContent =
         'Running… t = ' + sim.t.toFixed(2) + ' h / ' + sim.maxT +
-        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb · Burn rate: ' + feed + ' lb/h';
+        ' h · Fuel left: ' + sim.fuelLeft.toFixed(1) + ' lb · Rate: ' + feed + ' lb/h';
 
-      // Now consume fuel for this time step (exact rate)
+      // Exact linear fuel consumption
       sim.fuelLeft = Math.max(0, sim.fuelLeft - feed * dt);
 
       if (sim.fuelLeft <= 0.001) {
-        // final zero point
-        sim.history.push({ t: sim.t + dt, LHV: 0, tar: 0, power: 0, H2: 0, CO: 0, fuelLeft: 0 });
+        sim.history.push({ t: +(sim.t + dt).toFixed(3), LHV: 0, tar: 0, power: 0, H2: 0, CO: 0, fuelLeft: 0 });
         updateTrendCharts();
         stopTrends();
         document.getElementById('simStatus').textContent =
-          'Fuel exhausted at t ≈ ' + (sim.t + dt).toFixed(2) + ' h. Production stopped.';
+          'Fuel exhausted near t = ' + (sim.t + dt).toFixed(2) + ' h.';
         return;
       }
 
@@ -503,12 +559,11 @@
           'Finished ' + sim.maxT + ' h run. Fuel remaining: ' + sim.fuelLeft.toFixed(1) + ' lb';
         return;
       }
-      sim.timer = setTimeout(stepTrends, 100);
+      sim.timer = setTimeout(stepTrends, 90);
     }
 
     function startTrends() {
       if (sim.running) return;
-      // Always start clean so feed rate is respected
       resetTrends(false);
       initTrendCharts();
 
@@ -519,12 +574,13 @@
       sim.fuelStart = sim.feedRate * sim.maxT;
       sim.fuelLeft = sim.fuelStart;
       sim.history = [];
+      sim.walkH2 = 0; sim.walkCO = 0; sim.walkTar = 0; sim.walkLHV = 0;
 
       sim.running = true;
       document.getElementById('btnStart').disabled = true;
       document.getElementById('btnStop').disabled = false;
       document.getElementById('simStatus').textContent =
-        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb dry fuel at ' + sim.feedRate + ' lb/h…';
+        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb at ' + sim.feedRate + ' lb/h…';
       stepTrends();
     }
 
@@ -544,6 +600,7 @@
       sim.history = [];
       sim.fuelLeft = 0;
       sim.fuelStart = 0;
+      sim.walkH2 = 0; sim.walkCO = 0; sim.walkTar = 0; sim.walkLHV = 0;
       destroyTrendCharts();
       if (updateStatus !== false)
         document.getElementById('simStatus').textContent = 'Reset. Ready to start.';
