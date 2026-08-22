@@ -116,6 +116,10 @@
           <input type="range" id="feed" min="1" max="40" value="8" step="0.5">
         </div>
         <div>
+          <label>Operation hours — <span class="val" id="opHoursVal">4</span> h (max 168)</label>
+          <input type="range" id="opHours" min="1" max="168" value="4" step="1">
+        </div>
+        <div>
           <label>Hearth load scf/h·in²</label>
           <select id="hearthLoad">
             <option value="1.5">1.5 conservative</option>
@@ -126,6 +130,7 @@
         </div>
       </div>
       <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas for engines.</p>
+      <p class="note" id="fuelLoadNote">Estimated dry fuel for this run: <span class="val" id="totalFuelVal">32</span> lb (feed rate × operation hours).</p>
     </div>
 
     <div class="card">
@@ -157,7 +162,7 @@
       <h2>4. Running Trends + Fuel Burn</h2>
       <div class="grid">
         <div>
-          <label>Duration (hours) — <span class="val" id="hoursVal">4</span> (max 168 = 7 days)</label>
+          <label>Duration (hours) — <span class="val" id="hoursVal">4</span> (synced with Operation hours)</label>
           <input type="range" id="hours" min="1" max="168" value="4" step="1">
         </div>
         <div>
@@ -171,7 +176,7 @@
           </select>
         </div>
       </div>
-      <p class="note">Total fuel = feed rate × duration. Burn rate is exact. Curves include startup, natural variation, and a gradual fade as fuel runs out.</p>
+      <p class="note">Total fuel = feed rate × operation hours. Burn rate is exact. Curves include startup, natural variation, and a gradual fade as fuel runs out.</p>
       <div style="margin-top:0.75rem">
         <button id="btnStart" onclick="startTrends()">Start</button>
         <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
@@ -179,7 +184,7 @@
         <button id="btnSave" class="save" onclick="saveData()" disabled>Save Data</button>
         <button id="btnZoom" class="reset" onclick="resetZoom()">Reset Zoom</button>
       </div>
-      <div class="sim-status" id="simStatus">Ready. Set duration (1–168 h) and press Start.</div>
+      <div class="sim-status" id="simStatus">Ready. Set operation hours and press Start.</div>
       <p class="note">Scroll / pinch to zoom time axis · drag to pan · Reset Zoom restores full view.</p>
 
       <h2 style="margin-top:1.25rem;color:var(--cyan)">Combined overview (normalized 0–100)</h2>
@@ -234,11 +239,7 @@
 
     const zoomOpts = {
       pan: { enabled: true, mode: 'x', modifierKey: null },
-      zoom: {
-        wheel: { enabled: true },
-        pinch: { enabled: true },
-        mode: 'x'
-      }
+      zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
     };
 
     let compChart = null;
@@ -264,6 +265,27 @@
         O: f1.O*(1-frac)+f2.O*frac,
         note: 'Blended fuel.'
       };
+    }
+
+    function updateTotalFuelNote() {
+      const feed = +document.getElementById('feed').value;
+      const hrs = +document.getElementById('opHours').value;
+      document.getElementById('totalFuelVal').textContent = (feed * hrs).toFixed(1);
+    }
+
+    function syncHours(fromOp) {
+      if (fromOp) {
+        const v = document.getElementById('opHours').value;
+        document.getElementById('hours').value = v;
+        document.getElementById('hoursVal').textContent = v;
+        document.getElementById('opHoursVal').textContent = v;
+      } else {
+        const v = document.getElementById('hours').value;
+        document.getElementById('opHours').value = v;
+        document.getElementById('opHoursVal').textContent = v;
+        document.getElementById('hoursVal').textContent = v;
+      }
+      updateTotalFuelNote();
     }
 
     function startupFactor(t) {
@@ -363,6 +385,7 @@
       document.getElementById('sizeVal').textContent = document.getElementById('psize').value;
       document.getElementById('blendVal').textContent = document.getElementById('blend').value;
       document.getElementById('fuelNote').textContent = fuel.note;
+      updateTotalFuelNote();
 
       const gas = equilibrium(fuel, moist, ER, gtype);
       const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
@@ -450,10 +473,7 @@
               title: { display: true, text: yTitle, color: '#a1a1aa' }
             }
           },
-          plugins: {
-            legend: { labels: { color: '#a1a1aa' } },
-            zoom: zoomOpts
-          }
+          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
         }
       });
     }
@@ -482,21 +502,10 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            x: {
-              ticks: { color: '#a1a1aa', maxTicksLimit: 8 },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
-            },
-            y: {
-              ticks: { color: '#a1a1aa' },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: 'Volume %', color: '#a1a1aa' }
-            }
+            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 8 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Time (hours)', color: '#a1a1aa' } },
+            y: { ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' }, title: { display: true, text: 'Volume %', color: '#a1a1aa' } }
           },
-          plugins: {
-            legend: { labels: { color: '#a1a1aa' } },
-            zoom: zoomOpts
-          }
+          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
         }
       });
 
@@ -516,22 +525,10 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           scales: {
-            x: {
-              ticks: { color: '#a1a1aa', maxTicksLimit: 10 },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: 'Time (hours)', color: '#a1a1aa' }
-            },
-            y: {
-              min: 0, max: 100,
-              ticks: { color: '#a1a1aa' },
-              grid: { color: '#3f4655' },
-              title: { display: true, text: 'Normalized % of run max', color: '#a1a1aa' }
-            }
+            x: { ticks: { color: '#a1a1aa', maxTicksLimit: 10 }, grid: { color: '#3f4655' }, title: { display: true, text: 'Time (hours)', color: '#a1a1aa' } },
+            y: { min: 0, max: 100, ticks: { color: '#a1a1aa' }, grid: { color: '#3f4655' }, title: { display: true, text: 'Normalized % of run max', color: '#a1a1aa' } }
           },
-          plugins: {
-            legend: { labels: { color: '#a1a1aa' } },
-            zoom: zoomOpts
-          }
+          plugins: { legend: { labels: { color: '#a1a1aa' } }, zoom: zoomOpts }
         }
       });
     }
@@ -649,7 +646,9 @@
       resetTrends(false);
       initTrendCharts();
 
-      sim.maxT = +document.getElementById('hours').value;
+      sim.maxT = +document.getElementById('opHours').value;
+      document.getElementById('hours').value = sim.maxT;
+      document.getElementById('hoursVal').textContent = sim.maxT;
       sim.stepMin = +document.getElementById('timestep').value;
       sim.feedRate = +document.getElementById('feed').value;
       sim.t = 0;
@@ -663,7 +662,7 @@
       document.getElementById('btnStop').disabled = false;
       document.getElementById('btnSave').disabled = true;
       document.getElementById('simStatus').textContent =
-        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb at ' + sim.feedRate + ' lb/h…';
+        'Starting with ' + sim.fuelLeft.toFixed(1) + ' lb at ' + sim.feedRate + ' lb/h for ' + sim.maxT + ' h…';
       stepTrends();
     }
 
@@ -706,7 +705,7 @@
         '# gasifier_type=' + gtype,
         '# moisture_pct_wb=' + moist,
         '# feed_rate_lb_per_h=' + sim.feedRate,
-        '# duration_h=' + sim.maxT,
+        '# operation_hours=' + sim.maxT,
         '# points=' + sim.history.length,
         header
       ];
@@ -725,14 +724,19 @@
         'CSV saved (' + sim.history.length + ' points).';
     }
 
-    ['moisture','er','feed','psize','blend','hours'].forEach(id => {
+    document.getElementById('opHours').addEventListener('input', () => syncHours(true));
+    document.getElementById('hours').addEventListener('input', () => syncHours(false));
+    document.getElementById('feed').addEventListener('input', updateTotalFuelNote);
+
+    ['moisture','er','feed','psize','blend'].forEach(id => {
       document.getElementById(id).addEventListener('input', () => {
-        const map = { moisture:'moistVal', er:'erVal', feed:'feedVal', psize:'sizeVal', blend:'blendVal', hours:'hoursVal' };
+        const map = { moisture:'moistVal', er:'erVal', feed:'feedVal', psize:'sizeVal', blend:'blendVal' };
         const el = document.getElementById(map[id]);
         el.textContent = id === 'er' ? (+document.getElementById(id).value).toFixed(2) : document.getElementById(id).value;
       });
     });
 
+    updateTotalFuelNote();
     runSim();
   </script>
 </body>
