@@ -3,178 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Wood Gasifier Calculator</title>
+  <title>Home Wood Gasifier Calculator & Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg: #0f1419;
-      --card: #1a1f2e;
-      --text: #e4e4e7;
-      --muted: #a1a1aa;
-      --accent: #fbbf24;
-      --green: #10b981;
-      --cyan: #06b6d4;
-      --orange: #f59e0b;
-      --red: #ef4444;
-      --border: #3f4655;
+      --bg: #0f1419; --card: #1a1f2e; --text: #e4e4e7; --muted: #a1a1aa;
+      --accent: #fbbf24; --green: #10b981; --cyan: #06b6d4; --orange: #f59e0b;
+      --red: #ef4444; --border: #3f4655; --purple: #8b5cf6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding: 1.25rem;
-    }
-    .container { max-width: 1100px; margin: 0 auto; }
-    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 0.35rem; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 1.25rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 0.25rem; }
     .sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-      margin-bottom: 1.25rem;
-    }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
     h2 { font-size: 1.1rem; color: var(--green); margin-bottom: 1rem; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
     label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
-    select, input[type=number], input[type=range] {
-      width: 100%;
-      background: #0f1419;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.5rem;
-      border-radius: 6px;
-      font-size: 0.95rem;
-    }
+    select, input[type=number], input[type=range] { width: 100%; background: #0f1419; border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; font-size: 0.95rem; }
     input[type=range] { padding: 0; height: 6px; }
     .val { font-weight: 600; color: var(--accent); }
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-    .metric {
-      background: rgba(0,0,0,0.25);
-      border-left: 3px solid var(--green);
-      padding: 0.75rem;
-      border-radius: 6px;
-    }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+    .metric { background: rgba(0,0,0,0.25); border-left: 3px solid var(--green); padding: 0.75rem; border-radius: 6px; }
     .metric.orange { border-left-color: var(--orange); }
     .metric.cyan { border-left-color: var(--cyan); }
     .metric.red { border-left-color: var(--red); }
+    .metric.purple { border-left-color: var(--purple); }
     .m-label { font-size: 0.7rem; color: var(--muted); }
-    .m-val { font-size: 1.25rem; font-weight: 700; }
+    .m-val { font-size: 1.2rem; font-weight: 700; }
     .m-unit { font-size: 0.7rem; color: var(--muted); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 600; }
     .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
-    .warn {
-      background: rgba(239,68,68,0.12);
-      border: 1px solid var(--red);
-      color: #fca5a5;
-      padding: 0.75rem;
-      border-radius: 6px;
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-    }
-    .ok {
-      background: rgba(16,185,129,0.12);
-      border: 1px solid var(--green);
-      color: #86efac;
-      padding: 0.75rem;
-      border-radius: 6px;
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-    }
+    .warn { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
+    .ok { background: rgba(16,185,129,0.12); border: 1px solid var(--green); color: #86efac; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
+    .info { background: rgba(6,182,212,0.1); border: 1px solid var(--cyan); color: #a5f3fc; padding: 0.75rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; }
+    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; height: 280px; margin-top: 1rem; }
+    button { background: var(--green); color: white; border: none; padding: 0.7rem 1.4rem; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 0.5rem; margin-top: 0.5rem; }
+    button.secondary { background: var(--purple); }
+    button:hover { filter: brightness(1.1); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.75rem; }
+    th, td { padding: 0.45rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); }
+    .comp-bar { display: flex; height: 28px; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+    .comp-seg { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #111; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Home Wood Gasifier Calculator</h1>
-    <p class="sub">DIY sizing tool · English units · Based on FEMA, FAO/SERI, and practical builder rules</p>
+    <h1>Home Wood Gasifier Calculator & Simulator</h1>
+    <p class="sub">English units · Sizing + simplified equilibrium syngas model · DIY guidance</p>
 
+    <!-- INPUTS -->
     <div class="card">
-      <h2>1. Fuel</h2>
+      <h2>1. Inputs</h2>
       <div class="grid">
         <div>
-          <label>Fuel type</label>
-          <select id="fuel">
-            <option value="hardwood">Hardwood chips / blocks (oak, hickory, maple)</option>
-            <option value="softwood">Softwood chips / blocks (pine, fir)</option>
-            <option value="pellets">Wood pellets</option>
-            <option value="sawdust">Sawdust / shavings (Missouri-style)</option>
-            <option value="ag">Agricultural residue (corn cobs, etc.)</option>
+          <label>Gasifier type</label>
+          <select id="gtype">
+            <option value="imbert">Downdraft (Imbert) — best for engines</option>
+            <option value="fema">FEMA stratified open-top</option>
+            <option value="updraft">Updraft — heat only</option>
           </select>
         </div>
         <div>
-          <label>Moisture content (% wet basis) — <span class="val" id="moistVal">15</span>%</label>
-          <input type="range" id="moisture" min="8" max="35" value="15" step="1">
+          <label>Primary fuel</label>
+          <select id="fuel1">
+            <option value="hardwood">Hardwood chips/blocks</option>
+            <option value="softwood">Softwood chips/blocks</option>
+            <option value="chips">Wood chips (mixed)</option>
+            <option value="charcoal">Charcoal</option>
+            <option value="corn">Corn cobs</option>
+            <option value="pellets">Wood pellets</option>
+            <option value="sawdust">Sawdust / shavings</option>
+          </select>
+        </div>
+        <div>
+          <label>Blend second fuel (optional)</label>
+          <select id="fuel2">
+            <option value="none">None</option>
+            <option value="hardwood">Hardwood</option>
+            <option value="softwood">Softwood</option>
+            <option value="charcoal">Charcoal</option>
+            <option value="corn">Corn cobs</option>
+          </select>
+        </div>
+        <div>
+          <label>Blend fraction of second fuel — <span class="val" id="blendVal">0</span>%</label>
+          <input type="range" id="blend" min="0" max="50" value="0" step="5">
+        </div>
+        <div>
+          <label>Moisture (% wet basis) — <span class="val" id="moistVal">15</span>%</label>
+          <input type="range" id="moisture" min="0" max="40" value="15" step="1">
+        </div>
+        <div>
+          <label>Particle size (mm) — <span class="val" id="sizeVal">50</span></label>
+          <input type="range" id="psize" min="5" max="150" value="50" step="5">
+        </div>
+        <div>
+          <label>Equivalence ratio (ER) — <span class="val" id="erVal">0.30</span></label>
+          <input type="range" id="er" min="0.20" max="0.45" value="0.30" step="0.01">
         </div>
         <div>
           <label>Dry feed rate (lb/h) — <span class="val" id="feedVal">8</span></label>
           <input type="range" id="feed" min="2" max="40" value="8" step="0.5">
         </div>
-      </div>
-      <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas. Keep moisture under 20 % for engine use.</p>
-    </div>
-
-    <div class="card">
-      <h2>2. Target Power / Design Type</h2>
-      <div class="grid">
-        <div>
-          <label>Design style</label>
-          <select id="style">
-            <option value="imbert">Imbert-style throated downdraft (best clean gas)</option>
-            <option value="fema">FEMA stratified open-top (simpler build)</option>
-          </select>
-        </div>
-        <div>
-          <label>Desired engine power (hp) — <span class="val" id="hpVal">10</span></label>
-          <input type="range" id="hp" min="3" max="50" value="10" step="1">
-        </div>
         <div>
           <label>Hearth load target (scf/h·in²)</label>
           <select id="hearthLoad">
-            <option value="1.5">1.5 — conservative / low tar</option>
-            <option value="2.3" selected>2.3 — typical design point</option>
-            <option value="2.6">2.6 — higher output</option>
-            <option value="2.9">2.9 — near max continuous</option>
+            <option value="1.5">1.5 — conservative</option>
+            <option value="2.3" selected>2.3 — typical</option>
+            <option value="2.6">2.6 — higher</option>
+            <option value="2.9">2.9 — near max</option>
           </select>
         </div>
       </div>
+      <p class="note" id="fuelNote">Hardwood gives the most stable, lower-tar gas for engines.</p>
     </div>
 
+    <!-- ENGINE MATCHING -->
     <div class="card">
-      <h2>3. Calculated Results</h2>
+      <h2>2. Engine Matching (optional)</h2>
+      <div class="grid">
+        <div>
+          <label>Engine displacement (cu in)</label>
+          <input type="number" id="disp" value="200" min="50" max="500" step="10">
+        </div>
+        <div>
+          <label>RPM</label>
+          <input type="number" id="rpm" value="1800" min="800" max="3600" step="100">
+        </div>
+      </div>
+      <p class="note">Used to estimate shaft power and required fuel feed for matching.</p>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="card">
+      <h2>3. Results</h2>
+      <button onclick="runSim()">Run Simulation</button>
+      <button class="secondary" onclick="compareFuels()">Compare All Fuels</button>
       <div class="metrics" id="metrics"></div>
+      <div id="compBars"></div>
+      <div class="chart-box"><canvas id="compChart"></canvas></div>
       <div id="status"></div>
+      <div id="guidance" class="info" style="display:none;"></div>
     </div>
 
-    <div class="card">
-      <h2>FEMA Fire-Tube Quick Reference (Stratified)</h2>
-      <table>
-        <thead>
-          <tr><th>Inside Dia (in)</th><th>Min Length (in)</th><th>Approx Engine (hp)</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>6</td><td>16</td><td>~30</td></tr>
-          <tr><td>8</td><td>20</td><td>~50</td></tr>
-          <tr><td>10</td><td>24</td><td>~80</td></tr>
-          <tr><td>12</td><td>28</td><td>~120</td></tr>
-        </tbody>
-      </table>
-      <p class="note">Never go below 6 in diameter for wood chips. Prototype used 6 in × ~19 in on a 35 hp tractor.</p>
+    <!-- MULTI-FUEL TABLE -->
+    <div class="card" id="compareCard" style="display:none;">
+      <h2>Multi-Fuel Comparison (same conditions)</h2>
+      <table id="compareTable"><thead><tr><th>Fuel</th><th>LHV (Btu/scf)</th><th>H₂ %</th><th>CO %</th><th>Est. Tar</th><th>Notes</th></tr></thead><tbody></tbody></table>
     </div>
 
+    <!-- SIZING -->
     <div class="card">
-      <h2>Key Design Rules</h2>
+      <h2>4. Reactor Sizing</h2>
+      <div class="metrics" id="sizeMetrics"></div>
+      <p class="note">Throat and reactor recommendations based on hearth load and gas flow.</p>
+    </div>
+
+    <!-- RULES -->
+    <div class="card">
+      <h2>Key Design Rules (English units)</h2>
       <ul style="font-size:0.9rem; color:var(--muted); padding-left:1.2rem;">
         <li>Gas yield ≈ 35–40 scf per lb dry wood</li>
         <li>Air ≈ 1.0–1.5 lb per lb dry wood (ER 0.25–0.35)</li>
@@ -182,81 +170,199 @@
         <li>Reduction zone height minimum 8 in</li>
         <li>Insulation is not optional for reliable low-tar operation</li>
         <li>Engine-quality tar target typically under 100 mg/Nm³</li>
+        <li>Model uses simplified Boudouard + water-gas shift equilibrium — indicative only</li>
       </ul>
     </div>
   </div>
 
   <script>
-    const fuels = {
-      hardwood: { note: "Hardwood chips/blocks give the most stable, lower-tar gas. Best overall choice for engines.", yield: 38, tarFactor: 0.85 },
-      softwood: { note: "Softwood works but tends to produce more tar and can bridge more easily. Dry well.", yield: 36, tarFactor: 1.15 },
-      pellets: { note: "Pellets are consistent size and dry, but can densify and restrict flow if not managed.", yield: 37, tarFactor: 0.95 },
-      sawdust: { note: "Sawdust needs a Missouri-style or specially designed unit. Bridging and high tar are common risks.", yield: 34, tarFactor: 1.4 },
-      ag: { note: "Ag residues vary widely. Expect more ash and careful grate design.", yield: 32, tarFactor: 1.3 }
+    // Fuel properties (simplified from FAO / typical literature)
+    const FUELS = {
+      hardwood: { name: 'Hardwood', yield: 38, tarF: 0.85, C: 0.50, H: 0.06, O: 0.44, note: 'Most stable, lower-tar gas for engines.' },
+      softwood: { name: 'Softwood', yield: 36, tarF: 1.15, C: 0.51, H: 0.06, O: 0.43, note: 'Higher tar tendency; dry well.' },
+      chips:    { name: 'Wood chips', yield: 37, tarF: 1.0,  C: 0.50, H: 0.06, O: 0.44, note: 'Good all-rounder if sized uniformly.' },
+      charcoal: { name: 'Charcoal', yield: 45, tarF: 0.25, C: 0.85, H: 0.03, O: 0.12, note: 'Very clean gas, high LHV, low tar.' },
+      corn:     { name: 'Corn cobs', yield: 32, tarF: 1.3,  C: 0.47, H: 0.06, O: 0.47, note: 'Higher ash; grate design important.' },
+      pellets:  { name: 'Pellets', yield: 37, tarF: 0.95, C: 0.50, H: 0.06, O: 0.44, note: 'Consistent size; watch for densification.' },
+      sawdust:  { name: 'Sawdust', yield: 34, tarF: 1.4,  C: 0.49, H: 0.06, O: 0.45, note: 'Needs Missouri-style or special design.' }
     };
 
-    function calc() {
-      const fuelKey = document.getElementById('fuel').value;
-      const moist = +document.getElementById('moisture').value;
-      const feedDry = +document.getElementById('feed').value;
-      const style = document.getElementById('style').value;
-      const hp = +document.getElementById('hp').value;
-      const Bg = +document.getElementById('hearthLoad').value;
+    let chart = null;
 
-      document.getElementById('moistVal').textContent = moist;
-      document.getElementById('feedVal').textContent = feedDry;
-      document.getElementById('hpVal').textContent = hp;
-      document.getElementById('fuelNote').textContent = fuels[fuelKey].note;
-
-      const yield = fuels[fuelKey].yield * (1 - (moist - 15) * 0.012);
-      const scfh = feedDry * Math.max(28, yield);
-      const scfm = scfh / 60;
-
-      const gasLHV = 140;
-      const energyBtuh = scfh * gasLHV;
-      const approxHpFromGas = energyBtuh / 2500;
-
-      const throatArea = scfh / Bg;
-      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
-
-      const airLbH = feedDry * 1.25;
-      const airCfm = airLbH / (0.076 * 60);
-
-      let tar = 120 * fuels[fuelKey].tarFactor;
-      if (moist > 20) tar *= 1.4;
-      if (moist > 25) tar *= 1.3;
-      if (style === 'fema') tar *= 1.25;
-      if (Bg < 1.8) tar *= 0.85;
-
-      let recDia = Math.max(6, Math.ceil(throatDia + (style === 'imbert' ? 4 : 2)));
-      if (style === 'fema' && recDia < 6) recDia = 6;
-
-      let statusHtml = '';
-      if (moist > 20) {
-        statusHtml = '<div class="warn">Moisture above 20 % will raise tar and lower gas quality. Dry the fuel for engine use.</div>';
-      } else if (tar > 150) {
-        statusHtml = '<div class="warn">Estimated tar is high. Prefer hardwood, lower moisture, proper insulation, and Imbert-style for engines.</div>';
-      } else {
-        statusHtml = '<div class="ok">Moisture and estimated tar look reasonable for a well-insulated, correctly loaded unit.</div>';
-      }
-
-      document.getElementById('metrics').innerHTML =
-        '<div class="metric cyan"><div class="m-label">Gas flow</div><div class="m-val">' + scfm.toFixed(1) + '</div><div class="m-unit">scfm</div></div>' +
-        '<div class="metric"><div class="m-label">Gas energy</div><div class="m-val">' + Math.round(energyBtuh/1000) + '</div><div class="m-unit">kBtu/h</div></div>' +
-        '<div class="metric"><div class="m-label">Throat diameter</div><div class="m-val">' + throatDia.toFixed(2) + '</div><div class="m-unit">in</div></div>' +
-        '<div class="metric"><div class="m-label">Recommended reactor ID</div><div class="m-val">' + recDia + '</div><div class="m-unit">in</div></div>' +
-        '<div class="metric cyan"><div class="m-label">Air required</div><div class="m-val">' + airCfm.toFixed(1) + '</div><div class="m-unit">cfm</div></div>' +
-        '<div class="metric orange"><div class="m-label">Est. tar (raw)</div><div class="m-val">' + Math.round(tar) + '</div><div class="m-unit">mg/Nm³</div></div>' +
-        '<div class="metric"><div class="m-label">Rough engine potential</div><div class="m-val">' + approxHpFromGas.toFixed(0) + '</div><div class="m-unit">hp (gas side)</div></div>' +
-        '<div class="metric"><div class="m-label">Dry wood per hour</div><div class="m-val">' + feedDry + '</div><div class="m-unit">lb/h</div></div>';
-      document.getElementById('status').innerHTML = statusHtml;
+    function getBlendFuel() {
+      const f1 = FUELS[document.getElementById('fuel1').value];
+      const f2key = document.getElementById('fuel2').value;
+      const frac = +document.getElementById('blend').value / 100;
+      if (f2key === 'none' || frac === 0) return f1;
+      const f2 = FUELS[f2key];
+      return {
+        name: f1.name + ' + ' + f2.name,
+        yield: f1.yield * (1-frac) + f2.yield * frac,
+        tarF: f1.tarF * (1-frac) + f2.tarF * frac,
+        C: f1.C * (1-frac) + f2.C * frac,
+        H: f1.H * (1-frac) + f2.H * frac,
+        O: f1.O * (1-frac) + f2.O * frac,
+        note: 'Blended fuel.'
+      };
     }
 
-    ['fuel','moisture','feed','style','hp','hearthLoad'].forEach(function(id) {
-      document.getElementById(id).addEventListener('input', calc);
-      document.getElementById(id).addEventListener('change', calc);
+    // Simplified two-reaction equilibrium approximation
+    function equilibrium(fuel, moist, ER, gtype) {
+      // Base dry composition tendencies (vol %)
+      let H2 = 16 + (fuel.H * 80) - (moist * 0.15);
+      let CO = 20 + (fuel.C * 15) - (moist * 0.25);
+      let CH4 = 2.5 - (ER - 0.25) * 4;
+      let CO2 = 11 + (moist * 0.2);
+      let N2 = 48;
+
+      // ER effect
+      if (ER < 0.25) { H2 += 2; CO += 1; CO2 -= 1; }
+      if (ER > 0.35) { H2 -= 3; CO -= 2; CO2 += 2; N2 += 2; }
+
+      // Moisture & type adjustments
+      if (moist > 20) { H2 += 1; CO -= 2; CO2 += 2; }
+      if (gtype === 'updraft') { CH4 += 1.5; CO -= 2; H2 -= 1; } // more tars/volatiles
+      if (gtype === 'fema') { CO -= 1; H2 -= 0.5; }
+
+      // Normalize to ~100
+      let sum = H2 + CO + CH4 + CO2 + N2;
+      H2 = Math.max(5, H2 * 100 / sum);
+      CO = Math.max(8, CO * 100 / sum);
+      CH4 = Math.max(0.5, CH4 * 100 / sum);
+      CO2 = Math.max(5, CO2 * 100 / sum);
+      N2 = 100 - (H2 + CO + CH4 + CO2);
+
+      // LHV approx Btu/scf (HHV factors simplified)
+      const LHV = (H2 * 275 + CO * 320 + CH4 * 910) / 100;
+
+      // Tar estimate
+      let tar = 100 * fuel.tarF;
+      if (moist > 20) tar *= 1.5;
+      if (moist > 30) tar *= 1.4;
+      if (gtype === 'updraft') tar *= 3;
+      if (gtype === 'fema') tar *= 1.4;
+      if (ER < 0.22 || ER > 0.40) tar *= 1.6;
+
+      return { H2, CO, CH4, CO2, N2, LHV, tar: Math.round(tar) };
+    }
+
+    function runSim() {
+      const fuel = getBlendFuel();
+      const moist = +document.getElementById('moisture').value;
+      const ER = +document.getElementById('er').value;
+      const gtype = document.getElementById('gtype').value;
+      const feed = +document.getElementById('feed').value;
+      const Bg = +document.getElementById('hearthLoad').value;
+      const psize = +document.getElementById('psize').value;
+      const disp = +document.getElementById('disp').value;
+      const rpm = +document.getElementById('rpm').value;
+
+      // Update labels
+      document.getElementById('moistVal').textContent = moist;
+      document.getElementById('erVal').textContent = ER.toFixed(2);
+      document.getElementById('feedVal').textContent = feed;
+      document.getElementById('sizeVal').textContent = psize;
+      document.getElementById('blendVal').textContent = document.getElementById('blend').value;
+      document.getElementById('fuelNote').textContent = fuel.note;
+
+      const gas = equilibrium(fuel, moist, ER, gtype);
+
+      // Yield adjusted for moisture
+      const yield = fuel.yield * (1 - Math.max(0, moist - 12) * 0.012);
+      const scfh = feed * Math.max(25, yield);
+      const scfm = scfh / 60;
+      const energy = scfh * gas.LHV;
+
+      // Throat sizing
+      const throatArea = scfh / Bg;
+      const throatDia = Math.sqrt(4 * throatArea / Math.PI);
+      let recDia = Math.max(6, Math.ceil(throatDia + (gtype === 'imbert' ? 4 : 2)));
+
+      // Engine match rough
+      // Syngas ~1/3 energy of gasoline → derate ~30-40%
+      const airPerCycle = (disp / 1728) * (rpm / 2) * 0.85; // cfm rough
+      const gasNeeded = airPerCycle * 1.1; // slightly rich mix
+      const shaftHp = (scfm * gas.LHV * 0.22) / 2545; // rough thermal→shaft
+
+      // Display metrics
+      document.getElementById('metrics').innerHTML =
+        '<div class="metric cyan"><div class="m-label">Gas flow</div><div class="m-val">' + scfm.toFixed(1) + '</div><div class="m-unit">scfm</div></div>' +
+        '<div class="metric"><div class="m-label">LHV</div><div class="m-val">' + Math.round(gas.LHV) + '</div><div class="m-unit">Btu/scf</div></div>' +
+        '<div class="metric"><div class="m-label">Energy</div><div class="m-val">' + Math.round(energy/1000) + '</div><div class="m-unit">kBtu/h</div></div>' +
+        '<div class="metric orange"><div class="m-label">Est. tar</div><div class="m-val">' + gas.tar + '</div><div class="m-unit">mg/Nm³</div></div>' +
+        '<div class="metric purple"><div class="m-label">Est. shaft power</div><div class="m-val">' + shaftHp.toFixed(1) + '</div><div class="m-unit">hp</div></div>' +
+        '<div class="metric"><div class="m-label">H₂</div><div class="m-val">' + gas.H2.toFixed(1) + '</div><div class="m-unit">%</div></div>' +
+        '<div class="metric"><div class="m-label">CO</div><div class="m-val">' + gas.CO.toFixed(1) + '</div><div class="m-unit">%</div></div>' +
+        '<div class="metric"><div class="m-label">CH₄</div><div class="m-val">' + gas.CH4.toFixed(1) + '</div><div class="m-unit">%</div></div>';
+
+      // Composition bars
+      document.getElementById('compBars').innerHTML =
+        '<div class="comp-bar">' +
+        '<div class="comp-seg" style="width:' + gas.H2 + '%;background:#60a5fa">H₂ ' + gas.H2.toFixed(0) + '</div>' +
+        '<div class="comp-seg" style="width:' + gas.CO + '%;background:#fbbf24">CO ' + gas.CO.toFixed(0) + '</div>' +
+        '<div class="comp-seg" style="width:' + gas.CH4 + '%;background:#34d399">CH₄</div>' +
+        '<div class="comp-seg" style="width:' + gas.CO2 + '%;background:#a78bfa">CO₂</div>' +
+        '<div class="comp-seg" style="width:' + gas.N2 + '%;background:#6b7280">N₂</div>' +
+        '</div>';
+
+      // Chart
+      const ctx = document.getElementById('compChart').getContext('2d');
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['H₂', 'CO', 'CH₄', 'CO₂', 'N₂'],
+          datasets: [{ data: [gas.H2, gas.CO, gas.CH4, gas.CO2, gas.N2],
+            backgroundColor: ['#60a5fa','#fbbf24','#34d399','#a78bfa','#6b7280'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#a1a1aa' } } } }
+      });
+
+      // Status & guidance
+      let status = '';
+      if (moist > 20) status = '<div class="warn">Moisture >20% raises tar and lowers heating value. Dry fuel for engine use.</div>';
+      else if (gas.tar > 150) status = '<div class="warn">Estimated tar is high. Prefer charcoal or hardwood, lower moisture, Imbert design, and good insulation.</div>';
+      else status = '<div class="ok">Numbers look reasonable for a well-insulated unit with dry fuel.</div>';
+      document.getElementById('status').innerHTML = status;
+
+      let guide = 'For a DIY builder: LHV around 120–160 Btu/scf is typical. Engine will need ~25–40% derate versus gasoline. Keep particle size consistent (¾–2 in ideal). If tar stays high after cooler + filter, improve oxidation temperature or add a thermal cracker.';
+      if (gtype === 'updraft') guide += ' Updraft gas is high-tar — use only for heat or with heavy cleanup.';
+      document.getElementById('guidance').style.display = 'block';
+      document.getElementById('guidance').textContent = guide;
+
+      // Sizing metrics
+      document.getElementById('sizeMetrics').innerHTML =
+        '<div class="metric"><div class="m-label">Throat diameter</div><div class="m-val">' + throatDia.toFixed(2) + '</div><div class="m-unit">in</div></div>' +
+        '<div class="metric"><div class="m-label">Recommended reactor ID</div><div class="m-val">' + recDia + '</div><div class="m-unit">in</div></div>' +
+        '<div class="metric cyan"><div class="m-label">Air approx</div><div class="m-val">' + (feed * 1.25 / 0.076 / 60).toFixed(1) + '</div><div class="m-unit">cfm</div></div>' +
+        '<div class="metric"><div class="m-label">Gas yield used</div><div class="m-val">' + yield.toFixed(0) + '</div><div class="m-unit">scf/lb</div></div>';
+    }
+
+    function compareFuels() {
+      const moist = +document.getElementById('moisture').value;
+      const ER = +document.getElementById('er').value;
+      const gtype = document.getElementById('gtype').value;
+      const tbody = document.querySelector('#compareTable tbody');
+      tbody.innerHTML = '';
+      ['hardwood','softwood','charcoal','corn','pellets','sawdust'].forEach(k => {
+        const f = FUELS[k];
+        const g = equilibrium(f, moist, ER, gtype);
+        const note = g.tar > 150 ? 'High tar risk' : (g.LHV > 150 ? 'Strong gas' : 'Typical');
+        tbody.innerHTML += '<tr><td>' + f.name + '</td><td>' + Math.round(g.LHV) + '</td><td>' + g.H2.toFixed(1) + '</td><td>' + g.CO.toFixed(1) + '</td><td>' + g.tar + '</td><td>' + note + '</td></tr>';
+      });
+      document.getElementById('compareCard').style.display = 'block';
+    }
+
+    // Live label updates
+    ['moisture','er','feed','psize','blend'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        document.getElementById(id === 'moisture' ? 'moistVal' : id === 'er' ? 'erVal' : id === 'feed' ? 'feedVal' : id === 'psize' ? 'sizeVal' : 'blendVal').textContent =
+          id === 'er' ? (+document.getElementById(id).value).toFixed(2) : document.getElementById(id).value;
+      });
     });
-    calc();
+
+    // Initial run
+    runSim();
   </script>
 </body>
 </html>
