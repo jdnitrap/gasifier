@@ -52,14 +52,15 @@ function pickFamily(fuel, inp){
   return { family:"imbert", reason:"Blocky dry fuel: constricted Imbert hearth cracks tars." };
 }
 
-function gasComp(fuel, moist, ER, family, tHours, walk){
+function gasComp(fuel, moist, ER, family, tHours, walk, startupMid){
   let H2=16+fuel.H*80-moist*0.15, CO=20+fuel.C*15-moist*0.25, CH4=2.5-(ER-0.25)*4, CO2=11+moist*0.2, N2=48;
   if(ER<0.25){ H2+=2; CO+=1; CO2-=1; }
   if(ER>0.35){ H2-=3; CO-=2; CO2+=2; N2+=2; }
   if(moist>20){ H2+=1; CO-=2; CO2+=2; }
   if(family==="updraft"){ CH4+=1.5; CO-=2; H2-=1; }
   if(family==="fema"){ CO-=1; H2-=0.5; }
-  const su = tHours===undefined ? 1 : 1/(1+Math.exp(-8*(tHours-0.28)));
+  const mid = startupMid==null ? 0.28 : startupMid;
+  const su = tHours===undefined ? 1 : 1/(1+Math.exp(-8*(tHours-mid)));
   H2*=0.4+0.6*su; CO*=0.45+0.55*su; CH4*=su; CO2+=(1-su)*8;
   if(walk){ H2+=walk.h2; CO+=walk.co; }
   H2=Math.max(3,H2); CO=Math.max(5,CO); CH4=Math.max(0.3,CH4); CO2=Math.max(4,CO2);
@@ -76,6 +77,62 @@ function gasComp(fuel, moist, ER, family, tHours, walk){
     if(tHours>2) tar*=1+Math.min(0.12,(tHours-2)*0.008);
   }
   return { H2, CO, CH4, CO2, N2, LHV, tar: Math.round(Math.max(20,tar)) };
+}
+
+function fuelLhv(fuel){
+  const hhv=14544*fuel.C+62028*(fuel.H-fuel.O/8);
+  return Math.max(4000, hhv-9720*fuel.H);
+}
+function yieldOf(fuel, moist){ return fuel.yield*(1-Math.max(0,moist-12)*0.012); }
+function heatLossFor(family, moisture, er, ideal){
+  if(ideal) return 0.02;
+  let x=0.08;
+  if(family==="fema"||family==="missouri") x+=0.03;
+  if(family==="updraft") x+=0.02;
+  if(moisture>20) x+=0.03;
+  if(er<0.24||er>0.36) x+=0.02;
+  return Math.min(0.22,x);
+}
+function packSide(label, fuel, family, moisture, er, targetHp, endUse, ideal){
+  const gas=gasComp(fuel, moisture, er, family);
+  const yld=Math.max(25, yieldOf(fuel, moisture));
+  const flhv=fuelLhv(fuel);
+  const wall=heatLossFor(family, moisture, er, ideal);
+  const cge=((yld*gas.LHV)/flhv)*(1-wall);
+  const tHot=ideal?1380:1200;
+  const hge=Math.min(0.92, cge+(yld*0.075*0.28*Math.max(0,tHot-70))/flhv);
+  const conv=endUse==="heat"?(ideal?0.90:0.78):(ideal?0.24:0.22);
+  const overall=(endUse==="heat"?hge:cge)*conv;
+  const scfh=(targetHp*BTU_HP/conv)/Math.max(80,gas.LHV);
+  return { label, family, moisture, er, lhv:gas.LHV, tar:gas.tar, yld, feed:scfh/yld, cge, hge, overall, wall };
+}
+function computeEfficiency(inp, fuel, family, fit){
+  const idealFam=inp.endUse==="heat"?"updraft":"imbert";
+  const real=packSide("This machine", fuel, family, inp.moisture, inp.er, inp.targetHp, inp.endUse, false);
+  const ideal=packSide("Ideal machine", fuel, idealFam, 12, 0.30, inp.targetHp, inp.endUse, true);
+  if(inp.endUse!=="heat" && fit==="undersized") real.overall*=0.85;
+  if(inp.endUse!=="heat" && fit==="oversized") real.overall*=0.92;
+  const ofIdeal=(real.overall/Math.max(0.04,ideal.overall))*100;
+  const flhv=fuelLhv(fuel);
+  const losses=[];
+  const moistPts=(packSide("d",fuel,family,12,inp.er,inp.targetHp,inp.endUse,false).cge-real.cge)*100;
+  if(moistPts>0.4) losses.push({name:"Moisture", points:moistPts.toFixed(1), note:inp.moisture+"% wb vs 12%. Steam steals hearth heat."});
+  const famPts=(packSide("d",fuel,idealFam,inp.moisture,inp.er,inp.targetHp,inp.endUse,false).cge-real.cge)*100;
+  if(famPts>0.4) losses.push({name:"Geometry", points:famPts.toFixed(1), note:family+" vs insulated "+idealFam+"."});
+  const erPts=(packSide("d",fuel,family,inp.moisture,0.30,inp.targetHp,inp.endUse,false).cge-real.cge)*100;
+  if(Math.abs(erPts)>0.4) losses.push({name:"Equivalence ratio", points:Math.abs(erPts).toFixed(1), note:"ER "+inp.er.toFixed(2)+" vs 0.30."});
+  losses.push({name:"Walls, leaks, DIY heat loss", points:(real.wall*100-2).toFixed(1), note:"Ideal ~2% wall loss. Home-built typically 8–14% unless the hot zone is insulated."});
+  if(inp.endUse!=="heat") losses.push({name:"Engine conversion", points:((ideal.overall-real.overall)*100).toFixed(1), note:"Ideal SI ~24% thermal. Real 22% plus mismatch."});
+  return {
+    flhv, real, ideal, ofIdeal,
+    fuelEnergy: real.feed*flhv,
+    gasEnergy: real.feed*real.yld*real.lhv*(1-real.wall),
+    woodExtra: Math.max(0, real.feed-ideal.feed),
+    losses: losses.filter(function(l){ return +l.points>0.2; }),
+    note: inp.endUse==="heat"
+      ? "Heat overall = hot-gas efficiency × burner. Ideal is an insulated updraft firing the tar."
+      : "Cold-gas efficiency = gas energy / dry-fuel LHV. Overall = CGE × engine. Ideal is dry fuel, ER 0.30, insulated Imbert, matched engine."
+  };
 }
 
 function fuelFactor(left, start){
@@ -177,7 +234,8 @@ function compute(){
   guidance.push("Expect 25–40% engine derate vs gasoline. Insulation is the cheapest tar control.");
   if(family==="imbert") guidance.push("Aim nozzles at the throat. Reduction zone ≥ 8 in. Spring lid as a relief.");
   if(family==="fema") guidance.push("Stratified bed: air from the top, no tight nozzle ring.");
-  return { inp, fuel, gas, sizes, engine, cooling, warnings, oks, guidance };
+  const efficiency=computeEfficiency(inp, fuel, family, fit);
+  return { inp, fuel, gas, sizes, engine, cooling, efficiency, warnings, oks, guidance };
 }
 
 function metric(label, val, unit, cls){
@@ -207,7 +265,9 @@ function render(){
     metric("Shaft power", e.shaft, "hp", "accent")+
     metric("Electric (est.)", e.elec, "kW")+
     metric("H₂", g.H2.toFixed(1), "%")+
-    metric("CO", g.CO.toFixed(1), "%");
+    metric("CO", g.CO.toFixed(1), "%")+
+    metric("Cold-gas η", Math.round(d.efficiency.real.cge*100)+"%", "this machine", "accent")+
+    metric("vs ideal", Math.round(d.efficiency.ofIdeal)+"%", "overall");
   $id("compBars").innerHTML='<div class="comp-bar">'+
     '<div class="comp-seg" style="width:'+g.H2+'%;background:#ece7d8">H₂</div>'+
     '<div class="comp-seg" style="width:'+g.CO+'%;background:#c9a227">CO</div>'+
@@ -215,6 +275,31 @@ function render(){
     '<div class="comp-seg" style="width:'+g.CO2+'%;background:#9a937f">CO₂</div>'+
     '<div class="comp-seg" style="width:'+g.N2+'%;background:#3a4030;color:#ece7d8">N₂</div></div>';
   $id("status").innerHTML=d.warnings.map(w=>'<div class="warn">'+w+'</div>').join("")+d.oks.map(w=>'<div class="ok">'+w+'</div>').join("");
+  const ef=d.efficiency, R=ef.real, I=ef.ideal;
+  $id("effNote").textContent=ef.note;
+  $id("effBarLabel").textContent="This machine is "+Math.round(ef.ofIdeal)+"% of an ideal unit on the same fuel";
+  $id("effBarVal").textContent=Math.round(ef.ofIdeal)+"%";
+  $id("effBar").style.width=Math.max(4, Math.min(100, ef.ofIdeal))+"%";
+  function sideMetrics(s){
+    return metric("Cold-gas η", (s.cge*100).toFixed(1)+"%", "", "accent")+
+      metric("Hot-gas η", (s.hge*100).toFixed(1)+"%")+
+      metric("Overall η", (s.overall*100).toFixed(1)+"%", "", "accent")+
+      metric("LHV", Math.round(s.lhv), "Btu/scf")+
+      metric("Feed", s.feed.toFixed(1), "lb/h dry")+
+      metric("Tar", s.tar, "mg/Nm³", s.tar>150?"red":"");
+  }
+  $id("effReal").innerHTML=sideMetrics(R);
+  $id("effIdeal").innerHTML=sideMetrics(I);
+  $id("effRealMeta").textContent=R.family+" · "+R.moisture+"% moisture · ER "+R.er.toFixed(2)+" · wall loss "+(R.wall*100).toFixed(0)+"%";
+  $id("effIdealMeta").textContent=I.family+" · 12% moisture · ER 0.30 · insulated · matched engine";
+  $id("effTotals").innerHTML=
+    metric("Fuel LHV", Math.round(ef.flhv), "Btu/lb dry")+
+    metric("Fuel energy", Math.round(ef.fuelEnergy/1000), "kBtu/h in")+
+    metric("Gas energy", Math.round(ef.gasEnergy/1000), "kBtu/h out")+
+    metric("Extra wood vs ideal", ef.woodExtra.toFixed(1), "lb/h", ef.woodExtra>2?"orange":"");
+  $id("effLosses").innerHTML=ef.losses.map(function(l){
+    return "<li><b>"+l.name+"</b> <span class='val'>−"+l.points+" pt</span> — "+l.note+"</li>";
+  }).join("");
   $id("familyReason").textContent=s.reason;
   $id("familyName").textContent=s.family.toUpperCase();
   $id("svgHop").textContent="Hopper "+s.hopDia+'" · '+s.hopHin+'"';
@@ -301,6 +386,22 @@ function initTrends(){
       plugins:{ legend:{labels:{color:"#9a937f"}}, zoom:zoomOpts }
     }
   });
+  trendCharts.eff=new Chart($id("trendEff").getContext("2d"), {
+    type:"line",
+    data:{ labels:[], datasets:[
+      {label:"CGE real %", data:[], borderColor:"#c9a227", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"CGE ideal %", data:[], borderColor:"#8aaa6e", tension:0.25, pointRadius:0, borderWidth:2, borderDash:[6,4]},
+      {label:"Overall real %", data:[], borderColor:"#ece7d8", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"Overall ideal %", data:[], borderColor:"#9a937f", tension:0.25, pointRadius:0, borderWidth:2, borderDash:[6,4]}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{ ticks:{color:"#9a937f", maxTicksLimit:8}, grid:{color:"#3a4030"}, title:{display:true,text:"Time (hours)",color:"#9a937f"} },
+        y:{ min:0, max:90, ticks:{color:"#9a937f"}, grid:{color:"#3a4030"}, title:{display:true,text:"Efficiency %",color:"#9a937f"} }
+      },
+      plugins:{ legend:{labels:{color:"#9a937f"}}, zoom:zoomOpts }
+    }
+  });
   trendCharts.combined=new Chart($id("trendCombined").getContext("2d"), {
     type:"line",
     data:{ labels:[], datasets:[
@@ -309,7 +410,8 @@ function initTrends(){
       {label:"Tar (inv)", data:[], borderColor:"#d08a3a", tension:0.25, pointRadius:0, borderWidth:2},
       {label:"Shaft power", data:[], borderColor:"#ece7d8", tension:0.25, pointRadius:0, borderWidth:2},
       {label:"H₂", data:[], borderColor:"#9a937f", tension:0.25, pointRadius:0, borderWidth:2},
-      {label:"CO", data:[], borderColor:"#c45c3e", tension:0.25, pointRadius:0, borderWidth:2}
+      {label:"CO", data:[], borderColor:"#c45c3e", tension:0.25, pointRadius:0, borderWidth:2},
+      {label:"CGE real", data:[], borderColor:"#7eb8c9", tension:0.25, pointRadius:0, borderWidth:2}
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       scales:{
@@ -321,15 +423,34 @@ function initTrends(){
   });
 }
 function norm(arr){ const m=Math.max.apply(null, arr.concat([1e-9])); return arr.map(function(v){ return v/m*100; }); }
+function updateTracker(){
+  if(!sim.history.length){ $id("effTracker").innerHTML=""; return; }
+  const n=sim.history.length, last=sim.history[n-1];
+  const avg=function(k){ return sim.history.reduce(function(s,h){ return s+h[k]; },0)/n; };
+  const ofI=last.cgeIdeal>0.1?(last.cgeReal/last.cgeIdeal)*100:0;
+  $id("effTracker").innerHTML=
+    metric("CGE now (real)", last.cgeReal.toFixed(1)+"%", "", "accent")+
+    metric("CGE now (ideal)", last.cgeIdeal.toFixed(1)+"%")+
+    metric("Run-average CGE", avg("cgeReal").toFixed(1)+"%", "", "accent")+
+    metric("This step vs ideal", ofI.toFixed(0)+"%", "", "orange");
+}
 function updateTrendCharts(){
   const L=sim.history.map(function(h){ return h.t.toFixed(2); });
   const fuel=sim.history.map(function(h){ return h.fuelLeft; }), lhv=sim.history.map(function(h){ return h.LHV; }), tar=sim.history.map(function(h){ return h.tar; });
   const pow=sim.history.map(function(h){ return h.power; }), h2=sim.history.map(function(h){ return h.H2; }), co=sim.history.map(function(h){ return h.CO; });
+  const cgeR=sim.history.map(function(h){ return h.cgeReal; }), cgeI=sim.history.map(function(h){ return h.cgeIdeal; });
+  const ovR=sim.history.map(function(h){ return h.overallReal; }), ovI=sim.history.map(function(h){ return h.overallIdeal; });
   trendCharts.fuel.data.labels=L; trendCharts.fuel.data.datasets[0].data=fuel; trendCharts.fuel.update("none");
   trendCharts.lhv.data.labels=L; trendCharts.lhv.data.datasets[0].data=lhv; trendCharts.lhv.update("none");
   trendCharts.tar.data.labels=L; trendCharts.tar.data.datasets[0].data=tar; trendCharts.tar.update("none");
   trendCharts.power.data.labels=L; trendCharts.power.data.datasets[0].data=pow; trendCharts.power.update("none");
   trendCharts.comp.data.labels=L; trendCharts.comp.data.datasets[0].data=h2; trendCharts.comp.data.datasets[1].data=co; trendCharts.comp.update("none");
+  trendCharts.eff.data.labels=L;
+  trendCharts.eff.data.datasets[0].data=cgeR;
+  trendCharts.eff.data.datasets[1].data=cgeI;
+  trendCharts.eff.data.datasets[2].data=ovR;
+  trendCharts.eff.data.datasets[3].data=ovI;
+  trendCharts.eff.update("none");
   const tarMax=Math.max.apply(null, tar.concat([1]));
   trendCharts.combined.data.labels=L;
   trendCharts.combined.data.datasets[0].data=norm(fuel);
@@ -338,7 +459,9 @@ function updateTrendCharts(){
   trendCharts.combined.data.datasets[3].data=norm(pow);
   trendCharts.combined.data.datasets[4].data=norm(h2);
   trendCharts.combined.data.datasets[5].data=norm(co);
+  trendCharts.combined.data.datasets[6].data=norm(cgeR);
   trendCharts.combined.update("none");
+  updateTracker();
 }
 
 function stepTrends(){
@@ -351,21 +474,32 @@ function stepTrends(){
   sim.walk.lhv=clamp(sim.walk.lhv+(Math.random()-0.5)*0.8,-6,6);
   const ff=fuelFactor(sim.fuelLeft, sim.fuelStart);
   let gas={H2:0,CO:0,CH4:0,CO2:0,N2:100,LHV:0,tar:0};
-  let power=0;
+  let power=0, cgeReal=0, cgeIdeal=0, overallReal=0, overallIdeal=0;
   if(ff>0.001){
     gas=gasComp(d.fuel, d.inp.moisture, d.inp.er, d.sizes.family, sim.t, sim.walk);
     gas.H2*=ff; gas.CO*=ff; gas.CH4*=ff; gas.LHV*=ff; gas.tar=Math.round(gas.tar*(0.3+0.7*ff));
-    const yld=Math.max(25, d.fuel.yield*(1-Math.max(0,d.inp.moisture-12)*0.012));
+    const yld=Math.max(25, yieldOf(d.fuel, d.inp.moisture));
+    const yldI=Math.max(25, yieldOf(d.fuel, 12));
     const scfm=(sim.feed*yld/60)*ff;
     power=(scfm*gas.LHV*60*ENG_EFF)/BTU_HP;
+    const idealFam=d.inp.endUse==="heat"?"updraft":"imbert";
+    const gasI=gasComp(d.fuel, 12, 0.30, idealFam, sim.t, {h2:sim.walk.h2*0.25, co:sim.walk.co*0.25, tar:sim.walk.tar*0.2, lhv:sim.walk.lhv*0.25}, 0.12);
+    gasI.LHV*=ff;
+    const flhv=fuelLhv(d.fuel);
+    const wall=heatLossFor(d.sizes.family, d.inp.moisture, d.inp.er, false);
+    const wallI=heatLossFor(idealFam, 12, 0.30, true);
+    cgeReal=flhv>0?((yld*gas.LHV)/flhv)*(1-wall):0;
+    cgeIdeal=flhv>0?((yldI*gasI.LHV)/flhv)*(1-wallI):0;
+    overallReal=(d.inp.endUse==="heat"?cgeReal*0.78:cgeReal*0.22);
+    overallIdeal=(d.inp.endUse==="heat"?cgeIdeal*0.90:cgeIdeal*0.24);
   }
-  sim.history.push({ t:+sim.t.toFixed(2), fuelLeft:+sim.fuelLeft.toFixed(2), LHV:+gas.LHV.toFixed(1), tar:gas.tar, power:+power.toFixed(2), H2:+gas.H2.toFixed(2), CO:+gas.CO.toFixed(2) });
+  sim.history.push({ t:+sim.t.toFixed(2), fuelLeft:+sim.fuelLeft.toFixed(2), LHV:+gas.LHV.toFixed(1), tar:gas.tar, power:+power.toFixed(2), H2:+gas.H2.toFixed(2), CO:+gas.CO.toFixed(2), cgeReal:+(cgeReal*100).toFixed(2), cgeIdeal:+(cgeIdeal*100).toFixed(2), overallReal:+(overallReal*100).toFixed(2), overallIdeal:+(overallIdeal*100).toFixed(2) });
   if(sim.history.length>600) sim.history.shift();
   updateTrendCharts();
   $id("simStatus").textContent="Running… t = "+sim.t.toFixed(2)+" h / "+sim.maxT+" h · Fuel left "+sim.fuelLeft.toFixed(1)+" lb · "+sim.feed+" lb/h";
   sim.fuelLeft=Math.max(0, sim.fuelLeft-sim.feed*dt);
   if(sim.fuelLeft<=0.001){
-    sim.history.push({ t:+(sim.t+dt).toFixed(2), fuelLeft:0, LHV:0, tar:0, power:0, H2:0, CO:0 });
+    sim.history.push({ t:+(sim.t+dt).toFixed(2), fuelLeft:0, LHV:0, tar:0, power:0, H2:0, CO:0, cgeReal:0, cgeIdeal:0, overallReal:0, overallIdeal:0 });
     updateTrendCharts(); stopTrends();
     $id("simStatus").textContent="Fuel exhausted near t = "+(sim.t+dt).toFixed(2)+" h. You can save CSV.";
     return;
@@ -408,8 +542,8 @@ function resetTrends(upd){
 function resetZoom(){ Object.values(trendCharts).forEach(function(c){ if(c && c.resetZoom) c.resetZoom(); }); }
 function saveData(){
   if(!sim.history.length) return;
-  const header="time_h,fuel_remaining_lb,LHV_Btu_per_scf,tar_mg_per_Nm3,shaft_power_hp,H2_pct,CO_pct";
-  const rows=sim.history.map(function(h){ return [h.t,h.fuelLeft,h.LHV,h.tar,h.power,h.H2,h.CO].join(","); });
+  const header="time_h,fuel_remaining_lb,LHV_Btu_per_scf,tar_mg_per_Nm3,shaft_power_hp,H2_pct,CO_pct,cge_real_pct,cge_ideal_pct,overall_real_pct,overall_ideal_pct";
+  const rows=sim.history.map(function(h){ return [h.t,h.fuelLeft,h.LHV,h.tar,h.power,h.H2,h.CO,h.cgeReal,h.cgeIdeal,h.overallReal,h.overallIdeal].join(","); });
   const csv=["# Hearth Lab trend export", header].concat(rows).join("\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const a=document.createElement("a");
