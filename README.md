@@ -1,20 +1,27 @@
 # Hearth Lab
 
-DIY wood-gasifier **sizer + burn simulator**. You enter the job (power, fuel, hours). The lab sizes the hearth, hopper, air, cooling, and engine match, then runs a time-series burn.
+DIY wood-gasifier **sizer + burn simulator**. Enter the job (power, fuel, hours). The lab sizes the hearth, hopper, air, cooling, and engine match, then runs a time-series burn.
 
 **Live:** [https://jdnitrap.github.io/gasifier/](https://jdnitrap.github.io/gasifier/)
 
-## What it does
+## Edit map (modular)
 
-1. **Design brief** — end use, target hp, operation hours, fuel / blend, moisture, particle size, ER, hearth-load band, geometry family, engine CID/RPM.
-2. **Snapshot** — gas flow, LHV, tar, composition, cold-gas efficiency vs an ideal machine.
-3. **Efficiency** — this machine vs ideal (dry fuel, ER 0.30, insulated Imbert, matched engine). Loss breakdown and extra wood vs ideal.
-4. **Required sizes** — throat or bed, reactor, hopper, nozzles, grate. Duty sets the steel; you do not pick a kit first.
-5. **Gas path** — cooler duty, condensate, cyclone → cooler → trap → filter.
-6. **Engine match** — mixture airflow vs gasifier output, derate vs gasoline.
-7. **Simulate** — start / stop / reset, 1–168 h, fuel remaining, LHV, tar, power, H₂/CO, combined overview, **real vs ideal efficiency trend**. Save CSV. Pan/zoom the charts.
+Change one file. Do not dump new physics into `index.html`.
 
-Units are English (in, scfm, Btu, lb, hp).
+| File | What to edit |
+|---|---|
+| `js/fuels.js` | Fuel table, hearth-load bands, family SV, constants |
+| `js/thermo.js` | Gas composition, yield, AFR, fuel LHV, family pick |
+| `js/compute.js` | Throat / bed / hopper / nozzles / engine match |
+| `js/efficiency.js` | Ideal vs real, CGE / HGE / overall, loss list |
+| `js/simulate.js` | Trends, fuel burn, CSV |
+| `js/render.js` | What the page displays |
+| `js/form.js` | Reads the design-brief inputs |
+| `js/main.js` | Wires events |
+| `css/app.css` | Look |
+| `index.html` | Page structure only |
+
+`hearth-lab.js` is a one-line shim for old bookmarks. New entry is `js/main.js`.
 
 ## Physics (rules of thumb, not a certified design)
 
@@ -23,14 +30,14 @@ Units are English (in, scfm, Btu, lb, hp).
 - Gas LHV from H₂ / CO / CH₄. Air from elemental AFR × ER.
 - Cold-gas efficiency = gas energy / dry-fuel LHV. Overall = CGE × engine (or hot-gas × burner for heat).
 
-Insulation, fuel size, and how you run it still move tar more than the last decimal of LHV.
+## Run locally
 
-## Files
+Open `index.html` from a static server (ES modules need http, not `file://`):
 
-| File | Role |
-|---|---|
-| `index.html` | Page |
-| `hearth-lab.js` | Sizer + simulator |
-| `uploads/` | Reference PDFs (FEMA, handbook, Missouri, …) |
+```bash
+python3 -m http.server 8080
+```
 
-Open `index.html` locally or use GitHub Pages on `main` `/`.
+Then visit http://127.0.0.1:8080/
+
+GitHub Pages serves `main` from `/`.

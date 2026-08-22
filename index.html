@@ -7,56 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-  <style>
-    :root {
-      --bg: #14160f; --card: #1c2016; --text: #ece7d8; --muted: #9a937f;
-      --accent: #c9a227; --green: #8aaa6e; --cyan: #9a937f; --orange: #d08a3a;
-      --red: #c45c3e; --border: #3a4030;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "IBM Plex Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
-    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 0.35rem; }
-    .sub { color: var(--muted); margin-bottom: 1.25rem; }
-    nav { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.8rem; padding: 0.4rem 0.6rem; border-radius: 6px; }
-    nav a:hover { background: var(--card); color: var(--text); }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.1rem; }
-    h2 { font-size: 1.05rem; color: var(--green); margin-bottom: 0.85rem; }
-    .kicker { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.2rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.9rem; }
-    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
-    select, input[type=number], input[type=range] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; min-height: 40px; }
-    input[type=range] { padding: 0; height: 6px; min-height: 0; }
-    .val { font-weight: 600; color: var(--accent); }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.65rem; }
-    .metric { background: rgba(0,0,0,0.22); border-left: 3px solid var(--green); padding: 0.7rem; border-radius: 6px; }
-    .metric.accent { border-left-color: var(--accent); }
-    .metric.orange { border-left-color: var(--orange); }
-    .metric.red { border-left-color: var(--red); }
-    .m-label { font-size: 0.68rem; color: var(--muted); }
-    .m-val { font-size: 1.12rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .m-unit { font-size: 0.68rem; color: var(--muted); }
-    .note { font-size: 0.82rem; color: var(--muted); margin-top: 0.7rem; }
-    .warn { background: rgba(196,92,62,0.12); border: 1px solid var(--red); color: #e8a090; padding: 0.65rem; border-radius: 6px; margin-top: 0.6rem; font-size: 0.85rem; }
-    .ok { background: rgba(138,170,110,0.12); border: 1px solid var(--green); color: #b6d49a; padding: 0.65rem; border-radius: 6px; margin-top: 0.6rem; font-size: 0.85rem; }
-    .chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem; height: 250px; margin-top: 0.7rem; }
-    .chart-box.tall { height: 320px; }
-    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
-    @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
-    button { background: var(--accent); color: #14160f; border: none; padding: 0.65rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin: 0.3rem 0.35rem 0 0; min-height: 44px; }
-    button.stop { background: var(--red); color: #fff; }
-    button.reset { background: #3a4030; color: var(--text); }
-    button.save { background: var(--green); color: #14160f; }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .comp-bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; margin: 0.6rem 0; }
-    .comp-seg { display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; color: #111; }
-    .sim-status { font-size: 0.9rem; margin: 0.5rem 0; color: var(--accent); }
-    .split { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; align-items: start; }
-    @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
-    ul.plain, ol.plain { font-size: 0.88rem; color: var(--muted); padding-left: 1.1rem; }
-    ul.plain li, ol.plain li { margin: 0.3rem 0; }
-  </style>
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="container">
@@ -249,11 +200,11 @@
         </div>
       </div>
       <div>
-        <button id="btnStart" onclick="startTrends()">Start</button>
-        <button id="btnStop" class="stop" onclick="stopTrends()" disabled>Stop</button>
-        <button class="reset" onclick="resetTrends()">Reset</button>
-        <button id="btnSave" class="save" onclick="saveData()" disabled>Save data</button>
-        <button class="reset" onclick="resetZoom()">Reset zoom</button>
+        <button id="btnStart" type="button">Start</button>
+        <button id="btnStop" class="stop" type="button" disabled>Stop</button>
+        <button id="btnReset" class="reset" type="button">Reset</button>
+        <button id="btnSave" class="save" type="button" disabled>Save data</button>
+        <button id="btnZoom" class="reset" type="button">Reset zoom</button>
       </div>
       <div class="sim-status" id="simStatus">Set hours and press Start. Fuel burns at the sizer feed rate.</div>
       <div class="metrics" id="effTracker"></div>
@@ -271,6 +222,6 @@
       <div class="chart-box"><canvas id="trendComp"></canvas></div>
     </div>
   </div>
-<script src="hearth-lab.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
