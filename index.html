@@ -63,7 +63,7 @@
     <h1>Hearth Lab</h1>
     <p class="sub">Size the machine from the job. English units · DIY wood gasifier sizer + burn simulator.</p>
     <nav>
-      <a href="#brief">Brief</a><a href="#snapshot">Snapshot</a><a href="#sizes">Sizes</a>
+      <a href="#brief">Brief</a><a href="#snapshot">Snapshot</a><a href="#efficiency">Efficiency</a><a href="#sizes">Sizes</a>
       <a href="#path">Gas path</a><a href="#engine">Engine</a><a href="#bom">Build</a>
       <a href="#sim">Simulate</a>
     </nav>
@@ -159,8 +159,36 @@
       <div id="status"></div>
     </div>
 
-    <div class="card" id="sizes">
+    <div class="card" id="efficiency">
       <div class="kicker">3</div>
+      <h2>Efficiency — this machine vs ideal</h2>
+      <p class="note" id="effNote"></p>
+      <div class="note" style="margin:0.4rem 0 0.8rem">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.3rem">
+          <span id="effBarLabel"></span><span class="val" id="effBarVal"></span>
+        </div>
+        <div style="height:12px;background:#14160f;border-radius:99px;overflow:hidden">
+          <div id="effBar" style="height:100%;width:0;background:#c9a227;border-radius:99px"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div>
+          <p class="note" style="margin:0 0 0.4rem;color:#9a937f;font-weight:600;text-transform:uppercase;font-size:0.7rem">This machine (real)</p>
+          <div class="metrics" id="effReal"></div>
+          <p class="note" id="effRealMeta"></p>
+        </div>
+        <div>
+          <p class="note" style="margin:0 0 0.4rem;color:#c9a227;font-weight:600;text-transform:uppercase;font-size:0.7rem">Ideal machine</p>
+          <div class="metrics" id="effIdeal"></div>
+          <p class="note" id="effIdealMeta"></p>
+        </div>
+      </div>
+      <div class="metrics" id="effTotals" style="margin-top:0.8rem"></div>
+      <ul class="plain" id="effLosses" style="margin-top:0.8rem"></ul>
+    </div>
+
+    <div class="card" id="sizes">
+      <div class="kicker">4</div>
       <h2>Required sizes — build to these</h2>
       <p class="note" id="familyReason"></p>
       <p>Suggested family: <span class="val" id="familyName"></span></p>
@@ -182,21 +210,21 @@
     </div>
 
     <div class="card" id="path">
-      <div class="kicker">4</div>
+      <div class="kicker">5</div>
       <h2>Cooling, filtration, piping</h2>
       <div class="metrics" id="coolMetrics"></div>
       <ol class="plain" id="coolStages" style="margin-top:0.8rem"></ol>
     </div>
 
     <div class="card" id="engine">
-      <div class="kicker">5</div>
+      <div class="kicker">6</div>
       <h2>Engine matching</h2>
       <div class="metrics" id="engMetrics"></div>
       <p class="note" id="engNote"></p>
     </div>
 
     <div class="card" id="bom">
-      <div class="kicker">6–7</div>
+      <div class="kicker">7</div>
       <h2>Materials, ops, and notes</h2>
       <ul class="plain" id="bomList"></ul>
       <ul class="plain" id="guideList" style="margin-top:0.6rem"></ul>
@@ -228,8 +256,10 @@
         <button class="reset" onclick="resetZoom()">Reset zoom</button>
       </div>
       <div class="sim-status" id="simStatus">Set hours and press Start. Fuel burns at the sizer feed rate.</div>
-      <p class="note">Scroll / pinch to zoom time · drag to pan. Startup ~30–45 min, organic variation, fade on last ~12% of fuel.</p>
+      <div class="metrics" id="effTracker"></div>
+      <p class="note">Scroll / pinch to zoom time · drag to pan. Startup ~30–45 min, organic variation, fade on last ~12% of fuel. Efficiency trend is real (solid) vs ideal (dashed).</p>
       <div class="chart-box tall"><canvas id="trendCombined"></canvas></div>
+      <div class="chart-box"><canvas id="trendEff"></canvas></div>
       <div class="chart-row">
         <div class="chart-box"><canvas id="trendFuel"></canvas></div>
         <div class="chart-box"><canvas id="trendLHV"></canvas></div>
